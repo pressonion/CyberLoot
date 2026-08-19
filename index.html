@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyberLoot - CS2 Case Opener</title>
+    <style>
+        /* ===== RESET & ROOT ===== */
+        :root {
+            --common: #b0c3d9;
+            --uncommon: #4b69ff;
+            --rare: #8847ff;
+            --epic: #d32ce6;
+            --legendary: #eb4b4b;
+            --mythic: #ffd700;
+            --bg-main: #0b0c10;
+            --bg-panel: rgba(18, 20, 28, 0.96);
+            --bg-card: rgba(26, 30, 40, 0.9);
+            --text-main: #f0f4ff;
+            --text-muted: #8892a8;
+            --accent: #00f5d4;
+            --danger: #ff4a6a;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            background: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(ellipse at 30% 0%, #1a1f2e 0%, #0b0c10 80%);
+        }
+        #app { height: 100%; width: 100%; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #2f354a; border-radius: 4px; }
+
+        .screen { display: none; height: 100%; width: 100%; flex-direction: column; }
+        .screen.active { display: flex; }
+
+        .view {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 1.5rem 2rem;
+        }
+        .view.active { display: block; }
+
+        /* ===== LOGIN ===== */
+        #login-screen { justify-content: center; align-items: center; }
+        .login-box {
+            background: var(--bg-panel);
+            backdrop-filter: blur(14px);
+            padding: 3rem 3.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+            width: 420px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+        }
+        .login-box h1 { margin-bottom: 0.5rem; font-size: 2.6rem; letter-spacing: 3px; font-weight: 800; }
+        .login-box h1 span { color: var(--accent); }
+        .login-box .sub { color: var(--text-muted); margin-bottom: 2.5rem; font-size: 0.95rem; letter-spacing: 1px; }
+        .input-group { margin-bottom: 1.5rem; text-align: left; }
+        .input-group label { display: block; margin-bottom: 0.4rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+        .input-group input {
+            width: 100%; padding: 0.8rem 1.2rem; background: rgba(0,0,0,0.4);
+            border: 1px solid #2a2f42; color: #fff; border-radius: 8px; outline: none;
+            font-size: 1rem; transition: border 0.25s;
+        }
+        .input-group input:focus { border-color: var(--accent); }
+        .btn {
+            background: var(--accent); color: #0b0c10; border: none; padding: 0.8rem 2rem;
+            font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 1.2px; font-size: 0.9rem;
+        }
+        .btn:hover { box-shadow: 0 0 24px var(--accent); transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { box-shadow: 0 0 24px var(--danger); }
+        .btn-gold { background: #ffaa00; color: #0b0c10; }
+        .btn-gold:hover { box-shadow: 0 0 24px #ffaa00; }
+        .btn-sm { font-size: 0.65rem; padding: 0.3rem 0.8rem; }
+        .btn-confirm { background: #ffaa00; color: #0b0c10; }
+        .btn-cancel { background: #555; color: #fff; }
+        #login-error { color: var(--danger); margin-top: 1rem; display: none; font-size: 0.9rem; }
+
+        /* ===== NAV ===== */
+        nav {
+            background: var(--bg-panel);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding: 0.6rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            backdrop-filter: blur(8px);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .nav-brand { font-weight: 800; font-size: 1.4rem; letter-spacing: 2px; }
+        .nav-brand span.accent { color: var(--accent); }
+        .nav-brand span.muted { color: var(--text-muted); }
+        .nav-links button {
+            background: none; border: none; color: var(--text-muted); font-size: 0.95rem;
+            margin-right: 1.5rem; cursor: pointer; font-weight: 600; padding: 0.4rem 0;
+            border-bottom: 2px solid transparent; transition: 0.2s;
+        }
+        .nav-links button:hover, .nav-links button.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .user-info { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; font-size: 0.9rem; }
+        .balance { font-weight: 700; color: var(--accent); }
+        .username-display { color: var(--text-muted); }
+        .value-display { color: var(--mythic); font-weight: 700; }
+        .luck-display { color: var(--accent); font-weight: 600; background: rgba(0,245,212,0.1); padding: 0.1rem 0.8rem; border-radius: 12px; }
+        .sound-toggle { cursor: pointer; font-size: 1.2rem; background: none; border: none; color: var(--text-muted); transition: 0.2s; }
+        .sound-toggle:hover { color: var(--accent); }
+
+        /* ===== INDEX / COLLECTION ===== */
+        .index-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .index-stats .stat {
+            background: var(--bg-card);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .index-stats .stat .num { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+        .index-stats .stat .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+        .index-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+        .index-item {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 0.8rem 0.6rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+        .index-item:hover { transform: translateY(-3px); }
+        .index-item .index-svg { width: 100%; height: 70px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.3rem; }
+        .index-item .index-svg svg { width: 100%; height: 100%; max-width: 90px; display: block; }
+        .index-item .index-name { font-size: 0.65rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .index-item .index-rarity { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .index-item.locked {
+            opacity: 0.4;
+            filter: grayscale(1) brightness(0.3);
+            border-color: #222;
+        }
+        .index-item.locked .index-name { color: var(--text-muted); }
+        .index-item.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+        .index-item.unlocked { border-color: var(--rarity-color, #fff); }
+        .index-item.unlocked .index-name { color: var(--text-main); }
+
+        /* ===== CARDS & GRID ===== */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem 0.8rem 1.2rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: transform 0.25s, border-color 0.25s;
+            position: relative;
+            cursor: default;
+        }
+        .card:hover { transform: translateY(-4px); border-color: var(--rarity-color, rgba(255,255,255,0.12)); }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--rarity-color, #fff);
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 0 15px var(--rarity-color);
+        }
+        .card .case-image {
+            width: 100%;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0.4rem 0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card .case-image .case-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.6rem;
+            text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+            line-height: 1.3;
+            padding: 0.4rem;
+            background: linear-gradient(145deg, var(--box-color1), var(--box-color2));
+        }
+        .card .case-image .case-box .lock-icon { font-size: 1.6rem; margin-bottom: 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .card .item-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+        .card .item-price { color: var(--text-muted); margin-bottom: 0.8rem; font-size: 0.85rem; }
+        .card .btn { font-size: 0.75rem; padding: 0.4rem 1.2rem; }
+
+        #inventory-grid .card .item-rarity { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: var(--rarity-color); }
+        #inventory-grid .card .item-actions { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; margin-top: 0.4rem; }
+        #inventory-grid .card .item-actions .btn { font-size: 0.6rem; padding: 0.3rem 0.8rem; }
+        #inventory-grid .card .lock-badge { font-size: 0.55rem; color: var(--accent); background: rgba(0,245,212,0.15); padding: 0.1rem 0.4rem; border-radius: 4px; display: inline-block; margin-top: 0.1rem; }
+
+        /* ===== MARKET SPECIFIC ===== */
+        .market-timer {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .market-sold-out {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem 0;
+            grid-column: 1 / -1;
+        }
+
+        /* ===== REEL & MODALS ===== */
+        #opening-view { display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1rem 2rem; }
+        #opening-view.active { display: flex; }
+        #opening-view h2 { text-align: center; color: var(--text-muted); font-weight: 400; letter-spacing: 1px; margin-bottom: 0.8rem; font-size: 1.2rem; }
+        .reel-wrapper { width: 100%; max-width: 1100px; position: relative; margin: 0.3rem auto; }
+        .reel-container {
+            width: 100%;
+            height: 200px;
+            background: #0e0f17;
+            border-top: 2px solid #252a3a;
+            border-bottom: 2px solid #252a3a;
+            overflow: hidden;
+            position: relative;
+            border-radius: 6px;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+        }
+        .reel-container .reel-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #ffd700;
+            z-index: 20;
+            transform: translateX(-50%);
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #ffaa00;
+            border-radius: 2px;
+        }
+        .reel { display: flex; gap: 4px; padding: 0 10px; will-change: transform; width: max-content; height: 100%; align-items: center; }
+        .reel-item {
+            width: 140px;
+            height: 170px;
+            background: #141822;
+            border-bottom: 4px solid var(--rarity-color);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+            padding: 0.4rem;
+        }
+        .reel-item .glow {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 60%, var(--rarity-color) 0%, transparent 80%);
+            opacity: 0.12;
+            pointer-events: none;
+            border-radius: 4px;
+        }
+        .reel-item .weapon-svg { width: 100px; height: 85px; z-index: 2; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7)); margin-bottom: 2px; }
+        .reel-item .weapon-svg svg { width: 100%; height: 100%; display: block; }
+        .reel-item .weapon-name { font-size: 0.6rem; text-align: center; color: var(--text-muted); z-index: 2; font-weight: 600; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .reel-item .rarity-badge { font-size: 0.45rem; text-transform: uppercase; letter-spacing: 1px; color: var(--rarity-color); font-weight: 700; z-index: 2; margin-top: 1px; }
+        .opening-controls { display: flex; gap: 1rem; margin-top: 1rem; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.25s; }
+        .modal-content {
+            background: var(--bg-panel);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            width: 90%;
+            max-width: 780px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+        .modal-header h2 { font-weight: 700; font-size: 1.4rem; }
+        .inspector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.8rem; margin: 1rem 0; }
+        .inspector-item { background: rgba(0,0,0,0.5); padding: 0.6rem 0.4rem; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--rarity-color); }
+        .inspector-item .weapon-svg-mini { width: 70px; height: 55px; margin: 0 auto 3px; }
+        .inspector-item .weapon-svg-mini svg { width: 100%; height: 100%; display: block; }
+        .inspector-item .label { font-size: 0.6rem; color: var(--text-muted); }
+        .inspector-item .name { font-size: 0.7rem; font-weight: 600; margin-top: 2px; }
+        .inspector-controls { display: flex; gap: 0.8rem; justify-content: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+
+        /* ===== WIN MODAL & RARITY ANIMATIONS ===== */
+        #win-modal .modal-content { max-width: 440px; text-align: center; border: 2px solid var(--rarity-color); box-shadow: 0 0 50px var(--rarity-color); transition: border-color 0.3s, box-shadow 0.3s; }
+        #win-modal .win-svg { width: 150px; height: 120px; margin: 0.8rem auto 0.4rem; filter: drop-shadow(0 0 40px var(--rarity-color)); transition: filter 0.3s; }
+        #win-modal .win-svg svg { width: 100%; height: 100%; display: block; }
+        #win-modal .win-rarity { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--rarity-color); }
+        #win-modal .win-name { font-size: 1.8rem; font-weight: 800; margin: 0.2rem 0 0.1rem; text-shadow: 0 0 30px var(--rarity-color); }
+        #win-modal .win-value { font-size: 1rem; color: var(--text-muted); margin-bottom: 1.2rem; }
+        .win-buttons { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+        /* Rarity Animations */
+        #win-content.epic .win-svg { animation: pulseGlow 1.5s ease-in-out infinite; }
+        #win-content.epic { animation: borderGlow 1.5s ease-in-out infinite; }
+
+        #win-content.legendary .win-svg { animation: shake 0.6s ease-in-out, pulseGlow 1s ease-in-out infinite; }
+        #win-content.legendary { animation: borderGlow 1s ease-in-out infinite; }
+
+        #win-content.mythic .win-svg { animation: shake 0.6s ease-in-out, rainbow 2s linear infinite; }
+        #win-content.mythic { animation: borderGlowRainbow 2s linear infinite; }
+        #win-content.mythic .win-name { background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 300% 100%; animation: shimmer 3s ease-in-out infinite; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            10% { transform: translateX(-10px) rotate(-5deg); }
+            20% { transform: translateX(10px) rotate(5deg); }
+            30% { transform: translateX(-10px) rotate(-3deg); }
+            40% { transform: translateX(10px) rotate(3deg); }
+            50% { transform: translateX(-5px) rotate(-2deg); }
+            60% { transform: translateX(5px) rotate(2deg); }
+            70% { transform: translateX(-3px) rotate(-1deg); }
+            80% { transform: translateX(3px) rotate(1deg); }
+            90% { transform: translateX(0) rotate(0deg); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--rarity-color)); }
+            50% { filter: drop-shadow(0 0 60px var(--rarity-color)); }
+        }
+        @keyframes borderGlow {
+            0%, 100% { border-color: var(--rarity-color); box-shadow: 0 0 30px var(--rarity-color); }
+            50% { border-color: #fff; box-shadow: 0 0 60px var(--rarity-color), 0 0 120px var(--rarity-color); }
+        }
+        @keyframes rainbow {
+            0% { filter: drop-shadow(0 0 30px red); }
+            16% { filter: drop-shadow(0 0 30px orange); }
+            33% { filter: drop-shadow(0 0 30px yellow); }
+            50% { filter: drop-shadow(0 0 30px green); }
+            66% { filter: drop-shadow(0 0 30px blue); }
+            83% { filter: drop-shadow(0 0 30px indigo); }
+            100% { filter: drop-shadow(0 0 30px violet); }
+        }
+        @keyframes borderGlowRainbow {
+            0% { border-color: red; box-shadow: 0 0 30px red; }
+            16% { border-color: orange; box-shadow: 0 0 30px orange; }
+            33% { border-color: yellow; box-shadow: 0 0 30px yellow; }
+            50% { border-color: green; box-shadow: 0 0 30px green; }
+            66% { border-color: blue; box-shadow: 0 0 30px blue; }
+            83% { border-color: indigo; box-shadow: 0 0 30px indigo; }
+            100% { border-color: violet; box-shadow: 0 0 30px violet; }
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .battlepass-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin: 0.8rem 0;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .battlepass-section h3 { color: var(--mythic); margin-bottom: 0.3rem; font-size: 1.1rem; }
+        .bp-progress { width: 100%; height: 16px; background: #1a1a2e; border-radius: 10px; overflow: hidden; margin: 0.3rem 0; }
+        .bp-progress .bp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--mythic)); transition: width 0.5s; }
+        .bp-milestones { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.3rem; }
+        .bp-milestone { padding: 0.1rem 0.6rem; border-radius: 10px; font-size: 0.6rem; background: #1a1a2e; border: 1px solid #333; }
+        .bp-milestone.unlocked { border-color: var(--mythic); color: var(--mythic); background: rgba(255,215,0,0.1); }
+
+        #confirm-modal .modal-content { max-width: 360px; text-align: center; }
+        #confirm-modal .confirm-buttons { display: flex; gap: 0.8rem; justify-content: center; margin-top: 1.2rem; }
+        #confirm-modal .confirm-buttons .btn { min-width: 70px; font-size: 0.8rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+            .index-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.8rem; }
+            nav { padding: 0.4rem 1rem; }
+            .nav-links button { margin-right: 0.8rem; font-size: 0.8rem; }
+            .user-info { gap: 0.5rem; font-size: 0.75rem; }
+            .view { padding: 0.8rem 1rem; }
+            .reel-item { width: 100px; height: 130px; }
+            .reel-item .weapon-svg { width: 70px; height: 60px; }
+            .reel-container { height: 150px; }
+            .modal-content { padding: 0.8rem 1rem; }
+            .login-box { width: 92%; padding: 1.5rem; }
+            .card .case-image .case-box { width: 80px; height: 80px; font-size: 0.5rem; }
+            #win-modal .win-name { font-size: 1.4rem; }
+            #win-modal .win-svg { width: 110px; height: 90px; }
+            .index-stats { gap: 0.8rem; }
+            .index-stats .stat { padding: 0.4rem 0.8rem; }
+            .index-stats .stat .num { font-size: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .reel-item { width: 75px; height: 105px; }
+            .reel-item .weapon-svg { width: 50px; height: 42px; }
+            .reel-container { height: 120px; }
+            .reel-line::after, .reel-line::before { display: none; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+            .index-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+            .index-item .index-svg { height: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- LOGIN -->
+        <div id="login-screen" class="screen active">
+            <div class="login-box">
+                <h1><span>C</span>YBER<span style="color:var(--text-muted)">LOOT</span></h1>
+                <div class="sub">⚡ CS2 Case Simulator ⚡</div>
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username" autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" />
+                </div>
+                <button class="btn" style="width:100%;" onclick="game.auth()">LOGIN / REGISTER</button>
+                <p id="login-error"></p>
+            </div>
+        </div>
+
+        <!-- MAIN UI -->
+        <div id="main-ui" class="screen">
+            <nav>
+                <div class="nav-brand"><span class="accent">C</span>YBER<span class="muted">LOOT</span></div>
+                <div class="nav-links">
+                    <button id="nav-shop" class="active" onclick="game.switchView('shop')">📦 SHOP</button>
+                    <button id="nav-inventory" onclick="game.switchView('inventory')">🎒 INVENTORY</button>
+                    <button id="nav-market" onclick="game.switchView('market')">🛒 MARKET</button>
+                    <button id="nav-index" onclick="game.switchView('index')">📖 INDEX</button>
+                    <button id="nav-battlepass" onclick="game.switchView('battlepass')">🏆 BP</button>
+                </div>
+                <div class="user-info">
+                    <div class="value-display">💎 $<span id="ui-value">0</span></div>
+                    <div class="luck-display">🍀 +<span id="ui-luck">0</span>%</div>
+                    <div class="balance">$<span id="ui-balance">0.00</span></div>
+                    <div class="username-display" id="ui-username">User</div>
+                    <button class="sound-toggle" id="sound-toggle" onclick="game.toggleSound()" title="Toggle Sound">🔊</button>
+                    <button class="btn btn-danger" style="padding:0.2rem 0.8rem;font-size:0.65rem;" onclick="game.logout()">LOGOUT</button>
+                </div>
+            </nav>
+
+            <!-- SHOP -->
+            <main class="view active" id="shop-view">
+                <h2 style="margin-bottom:1rem;font-size:1.3rem;">📦 Case Shop</h2>
+                <div class="grid" id="shop-grid"></div>
+            </main>
+
+            <!-- INVENTORY -->
+            <main class="view" id="inventory-view">
+                <h2 style="font-size:1.3rem;">🎒 Your Inventory <span style="font-size:0.7rem;color:var(--text-muted);">(Total: $<span id="inv-total-value">0.00</span>)</span></h2>
+                <div class="grid" id="inventory-grid" style="margin-top:1rem;"></div>
+            </main>
+
+            <!-- MARKET -->
+            <main class="view" id="market-view">
+                <h2 style="font-size:1.3rem;">🛒 Daily Market <span style="font-size:0.7rem;color:var(--text-muted);">(Refreshes daily)</span></h2>
+                <div class="market-timer" id="market-timer"></div>
+                <div class="grid" id="market-grid"></div>
+            </main>
+
+            <!-- INDEX / COLLECTION -->
+            <main class="view" id="index-view">
+                <h2 style="font-size:1.3rem;">📖 Weapon Collection</h2>
+                <div class="index-stats">
+                    <div class="stat"><span class="num" id="index-collected">0</span> <span class="label">Collected</span></div>
+                    <div class="stat"><span class="num" id="index-total">0</span> <span class="label">Total Weapons</span></div>
+                    <div class="stat"><span class="num" id="index-progress">0%</span> <span class="label">Progress</span></div>
+                </div>
+                <div class="index-grid" id="index-grid"></div>
+            </main>
+
+            <!-- BATTLE PASS -->
+            <main class="view" id="battlepass-view">
+                <h2 style="font-size:1.3rem;">🏆 Battle Pass</h2>
+                <div class="battlepass-section">
+                    <h3>Your Progress</h3>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">Inventory Value: <strong style="color:var(--mythic);">$<span id="bp-value">0</span></strong></p>
+                    <div class="bp-progress"><div class="bp-fill" id="bp-fill" style="width:0%"></div></div>
+                    <p style="color:var(--text-muted);font-size:0.75rem;">Next milestone: <span id="bp-next">$500</span></p>
+                    <div class="bp-milestones" id="bp-milestones"></div>
+                    <p style="color:var(--accent);font-size:0.85rem;margin-top:0.3rem;">🍀 Luck Bonus: <strong id="bp-luck">+0%</strong></p>
+                </div>
+                <div class="battlepass-section" style="border-color:var(--accent);">
+                    <h3 style="color:var(--accent);">Free Case</h3>
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Claim 1 free case every 10 minutes!</p>
+                    <button class="btn" onclick="game.claimFreeCase()" id="free-case-btn">🎁 CLAIM</button>
+                    <p id="free-case-timer" style="color:var(--text-muted);font-size:0.7rem;margin-top:0.3rem;"></p>
+                </div>
+            </main>
+
+            <!-- OPENING -->
+            <main class="view" id="opening-view">
+                <h2 id="opening-case-name">🔓 Opening Case...</h2>
+                <div class="reel-wrapper">
+                    <div class="reel-container">
+                        <div class="reel-line"></div>
+                        <div class="reel" id="reel"></div>
+                    </div>
+                </div>
+                <div class="opening-controls">
+                    <button class="btn btn-danger" id="btn-skip-opening" onclick="game.skipAnimation()">⏭ SKIP</button>
+                    <button class="btn btn-gold" id="btn-stop-auto" style="display:none;" onclick="game.stopAutoRoll()">⏹ STOP</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- INSPECTOR MODAL -->
+        <div class="modal-overlay" id="inspector-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="inspector-title">Case</h2>
+                    <button class="btn btn-danger" style="padding:0.3rem 1rem;font-size:0.7rem;" onclick="game.closeInspector()">✕</button>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Possible drops (worst → best):</p>
+                <div class="inspector-grid" id="inspector-items"></div>
+                <div class="inspector-controls">
+                    <button class="btn" id="btn-inspect-open" onclick="game.startRoll(false)">🔓 OPEN 1x</button>
+                    <button class="btn btn-gold" onclick="game.startRoll(true)">⚡ AUTO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WIN MODAL -->
+        <div class="modal-overlay" id="win-modal">
+            <div class="modal-content" id="win-content">
+                <div style="color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;font-size:0.7rem;font-weight:600;">🎯 You Received</div>
+                <div class="win-svg" id="win-svg"></div>
+                <div class="win-rarity" id="win-rarity">Common</div>
+                <div class="win-name" id="win-name">Item</div>
+                <div class="win-value">Value: $<span id="win-value">0.00</span></div>
+                <div class="win-buttons">
+                    <button class="btn" id="btn-win-keep" onclick="game.closeWinModal(false)">📦 KEEP</button>
+                    <button class="btn btn-danger" id="btn-win-sell" onclick="game.closeWinModal(true)">💰 SELL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIRM MODAL -->
+        <div class="modal-overlay" id="confirm-modal">
+            <div class="modal-content">
+                <h3 style="color:var(--mythic);">⚠️ Are you sure?</h3>
+                <p style="color:var(--text-muted);margin:0.8rem 0;" id="confirm-message">Sell this item?</p>
+                <div class="confirm-buttons">
+                    <button class="btn btn-confirm" onclick="game.confirmSell()">✅ YES</button>
+                    <button class="btn btn-cancel" onclick="game.cancelSell()">❌ NO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  SOUND MANAGER – Web Audio API
+        // ================================================================
+        const SoundManager = {
+            enabled: true,
+            ctx: null,
+
+            init() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (_) { this.enabled = false; }
+            },
+
+            playTone(freq, duration, type = 'sine', volume = 0.3) {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (_) {}
+            },
+
+            click() { this.playTone(800, 0.06, 'square', 0.15); },
+
+            reelTick() { this.playTone(1200, 0.04, 'sine', 0.08); },
+
+            reelSpinStart() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 5.5);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 5.5);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 5.5);
+                    this._spinOsc = osc;
+                } catch (_) {}
+            },
+
+            reelSpinStop() {
+                if (this._spinOsc) {
+                    try { this._spinOsc.stop(); } catch (_) {}
+                    this._spinOsc = null;
+                }
+            },
+
+            revealCommon() { this.playTone(600, 0.2, 'sine', 0.3); },
+            revealUncommon() { this.playTone(800, 0.25, 'sine', 0.35); },
+            revealRare() {
+                this.playTone(1000, 0.2, 'sine', 0.3);
+                setTimeout(() => this.playTone(1300, 0.25, 'sine', 0.3), 150);
+            },
+            revealEpic() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.6);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.6);
+                } catch (_) {}
+            },
+            revealLegendary() {
+                this.playTone(500, 0.5, 'sine', 0.25);
+                setTimeout(() => this.playTone(700, 0.5, 'sine', 0.2), 100);
+                setTimeout(() => this.playTone(900, 0.6, 'sine', 0.2), 200);
+            },
+            revealMythic() {
+                const notes = [400, 500, 600, 800, 1000, 1200];
+                notes.forEach((f, i) => {
+                    setTimeout(() => this.playTone(f, 0.3, 'square', 0.15), i * 100);
+                });
+                setTimeout(() => this.playTone(1500, 0.5, 'sawtooth', 0.2), 600);
+            },
+
+            toggle() {
+                this.enabled = !this.enabled;
+                document.getElementById('sound-toggle').textContent = this.enabled ? '🔊' : '🔇';
+                if (this.enabled && this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+        };
+
+        // ================================================================
+        //  WEAPON SVG – UNIQUE IDS
+        // ================================================================
+        let _svgCounter = 0;
+        function weaponSVG(type, color, grayscale = false) {
+            const id = ++_svgCounter;
+            const gradId = 'g' + id;
+            const filterId = 'f' + id;
+            const actualColor = grayscale ? '#555' : color;
+            const grad = `
+                <defs>
+                    <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${actualColor}" />
+                        <stop offset="50%" stop-color="${grayscale ? '#888' : '#ffffff'}" />
+                        <stop offset="100%" stop-color="${actualColor}" />
+                    </linearGradient>
+                    <linearGradient id="neonGlow" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="${actualColor}88" />
+                        <stop offset="100%" stop-color="${actualColor}ff" />
+                    </linearGradient>
+                    <filter id="${filterId}">
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="${actualColor}" flood-opacity="${grayscale ? 0 : 0.4}"/>
+                    </filter>
+                </defs>
+            `;
+            const shapes = {
+                'glock': `<g filter="url(#${filterId})"><path d="M 25 45 L 85 45 L 85 58 L 25 58 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 25 58 L 78 58 L 78 64 L 60 95 L 38 95 L 48 64 L 25 64 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 48 64 Q 58 78 70 64" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'usp': `<g filter="url(#${filterId})"><rect x="75" y="47" width="38" height="10" rx="3" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><path d="M 28 45 L 75 45 L 75 59 L 28 59 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 28 59 L 70 59 L 70 65 L 52 95 L 34 95 L 42 65 L 28 65 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'deagle': `<g filter="url(#${filterId})"><path d="M 22 45 L 82 45 L 82 60 L 22 60 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 22 60 L 76 60 L 76 66 L 58 95 L 40 95 L 48 66 L 22 66 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="82" y="52" width="18" height="6" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/></g>`,
+                'dual': `<g filter="url(#${filterId})"><path d="M 12 45 L 48 45 L 48 58 L 12 58 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 12 58 L 42 58 L 42 64 L 30 95 L 18 95 L 24 64 L 12 64 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 62 45 L 98 45 L 98 58 L 62 58 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 62 58 L 92 58 L 92 64 L 80 95 L 68 95 L 74 64 L 62 64 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'r8': `<g filter="url(#${filterId})"><path d="M 20 45 L 80 45 L 80 60 L 20 60 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 20 60 L 74 60 L 74 66 L 56 95 L 38 95 L 46 66 L 20 66 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><circle cx="50" cy="52" r="6" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'ak': `<g filter="url(#${filterId})"><path d="M 10 52 L 35 52 L 35 68 L 15 76 Z" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="35" y="50" width="48" height="18" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="83" y="54" width="32" height="6" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="80" y="48" width="24" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 52 68 Q 58 98 42 102 L 32 98 Q 48 80 44 68 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 35 68 L 47 68 L 42 90 L 30 90 Z" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/></g>`,
+                'm4': `<g filter="url(#${filterId})"><path d="M 10 52 L 34 52 L 34 70 L 18 70 L 10 80 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="34" y="50" width="44" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="78" y="52" width="30" height="12" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="108" y="56" width="12" height="5" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 50 70 L 64 70 L 60 95 L 44 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 34 70 L 44 70 L 38 90 L 26 90 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'famas': `<g filter="url(#${filterId})"><rect x="20" y="50" width="40" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="60" y="54" width="28" height="10" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 20 50 L 12 70 L 28 70 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 40 70 L 54 70 L 50 95 L 34 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="20" y="54" width="6" height="16" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'galil': `<g filter="url(#${filterId})"><path d="M 10 52 L 35 52 L 35 70 L 15 80 Z" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="35" y="50" width="44" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="79" y="54" width="30" height="6" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 48 70 L 60 70 L 56 95 L 40 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'sg': `<g filter="url(#${filterId})"><rect x="10" y="50" width="24" height="20" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="34" y="50" width="44" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="78" y="54" width="32" height="6" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="48" y="38" width="24" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 50 70 L 64 70 L 60 95 L 44 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'aug': `<g filter="url(#${filterId})"><rect x="20" y="50" width="40" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="60" y="54" width="28" height="10" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 20 50 L 12 70 L 28 70 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 40 70 L 54 70 L 50 95 L 34 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="48" y="38" width="16" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'scar': `<g filter="url(#${filterId})"><rect x="10" y="50" width="28" height="20" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="38" y="50" width="44" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="82" y="54" width="30" height="6" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 54 70 L 66 70 L 62 95 L 46 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'g3sg1': `<g filter="url(#${filterId})"><rect x="10" y="50" width="26" height="20" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="36" y="50" width="44" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="80" y="54" width="32" height="6" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="50" y="38" width="20" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 52 70 L 64 70 L 60 95 L 44 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'awp': `<g filter="url(#${filterId})"><path d="M 8 72 L 15 54 L 72 54 L 76 62 L 54 64 L 52 76 L 25 76 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="72" y="56" width="48" height="6" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="38" y="42" width="34" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="44" y="50" width="5" height="4" fill="${grayscale ? '#666' : color}"/><rect x="62" y="50" width="5" height="4" fill="${grayscale ? '#666' : color}"/><rect x="48" y="64" width="16" height="18" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'scout': `<g filter="url(#${filterId})"><path d="M 8 72 L 15 54 L 68 54 L 72 62 L 52 64 L 50 76 L 25 76 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="68" y="56" width="44" height="6" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="38" y="42" width="30" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><rect x="44" y="64" width="14" height="16" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'mac10': `<g filter="url(#${filterId})"><path d="M 22 52 L 44 68 L 82 68 L 96 52 L 88 38 L 66 28 L 44 28 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="44" y="68" width="18" height="25" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="20" y="50" width="10" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'tmp': `<g filter="url(#${filterId})"><rect x="25" y="48" width="60" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="85" y="52" width="20" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 35 68 L 48 68 L 44 95 L 28 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="20" y="50" width="8" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'mp9': `<g filter="url(#${filterId})"><rect x="25" y="45" width="60" height="25" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="85" y="50" width="25" height="10" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 35 70 L 45 70 L 40 95 L 25 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 65 70 L 75 70 L 70 85 L 55 85 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="20" y="48" width="8" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'mp7': `<g filter="url(#${filterId})"><rect x="25" y="45" width="60" height="25" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="85" y="50" width="22" height="10" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 35 70 L 45 70 L 40 95 L 25 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="60" y="70" width="15" height="20" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="20" y="48" width="8" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'ump': `<g filter="url(#${filterId})"><rect x="20" y="45" width="70" height="25" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="90" y="52" width="20" height="8" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 30 70 L 45 70 L 45 100 L 25 100 Z" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 60 70 L 75 70 L 70 90 L 50 90 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="15" y="48" width="10" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'p90': `<g filter="url(#${filterId})"><path d="M 35 50 L 55 65 L 85 65 L 98 50 L 90 36 L 72 26 L 52 26 L 38 36 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 52 26 L 72 26 L 76 36 L 54 36 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="86" y="50" width="16" height="6" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><rect x="30" y="48" width="8" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'bizon': `<g filter="url(#${filterId})"><rect x="20" y="48" width="60" height="20" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="40" cy="80" r="18" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><circle cx="40" cy="80" r="10" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="80" y="52" width="22" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><rect x="15" y="50" width="8" height="14" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'shotgun': `<g filter="url(#${filterId})"><rect x="25" y="55" width="50" height="15" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="75" y="57" width="18" height="10" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 25 70 L 35 70 L 32 95 L 18 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="55" y="65" width="15" height="25" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'nova': `<g filter="url(#${filterId})"><rect x="28" y="55" width="44" height="15" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="72" y="57" width="16" height="10" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 28 70 L 38 70 L 34 95 L 20 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="52" y="65" width="14" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'xm1014': `<g filter="url(#${filterId})"><rect x="22" y="55" width="50" height="15" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="72" y="57" width="16" height="10" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 22 70 L 32 70 L 30 95 L 16 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="52" y="65" width="16" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'm249': `<g filter="url(#${filterId})"><rect x="12" y="48" width="70" height="22" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="82" y="52" width="26" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><path d="M 25 70 L 40 70 L 40 100 L 20 100 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="50" y="70" width="20" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'negev': `<g filter="url(#${filterId})"><rect x="10" y="48" width="72" height="22" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="82" y="52" width="28" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><path d="M 22 70 L 38 70 L 38 100 L 18 100 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="48" y="70" width="22" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
+                'karambit': `<g filter="url(#${filterId})"><path d="M 38 75 Q 50 65 62 58 L 68 68 Q 55 75 44 86 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="36" cy="80" r="8" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="4"/><path d="M 62 58 Q 85 40 110 52 Q 85 65 68 68 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="28" y="78" width="14" height="22" rx="3" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="32" y="82" width="6" height="14" rx="2" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
+                'butterfly': `<g filter="url(#${filterId})"><path d="M 45 10 L 55 35 L 65 55 L 55 80 L 38 80 L 28 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 45 10 L 35 35 L 25 55 L 35 80 L 52 80 L 62 55 L 52 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="40" y="82" width="10" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><circle cx="45" cy="82" r="4" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'talon': `<g filter="url(#${filterId})"><path d="M 45 15 L 55 40 L 62 60 L 52 82 L 36 82 L 26 60 L 36 40 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="44" cy="50" r="6" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="34" y="82" width="14" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="38" y="86" width="6" height="10" rx="1" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
+                'm9': `<g filter="url(#${filterId})"><path d="M 44 12 L 54 35 L 62 55 L 54 80 L 38 80 L 30 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 38 35 L 28 22 L 22 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 54 35 L 64 22 L 70 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="40" y="82" width="12" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="44" y="86" width="4" height="10" rx="1" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`
+            };
+            const svgContent = shapes[type] || shapes['glock'];
+            return `<svg viewBox="0 0 120 105" xmlns="http://www.w3.org/2000/svg">${grad}${svgContent}</svg>`;
+        }
+
+        function caseImageHTML(color, name) {
+            return `<div class="case-box" style="--box-color1: ${color}77; --box-color2: ${color}22; border-color: ${color};"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px ${color};">📦</div>${name.replace(' Case','')}</div>`;
+        }
+
+        // ================================================================
+        //  RARITIES
+        // ================================================================
+        const BASE_RARITIES = {
+            'Common': { color: '#b0c3d9', chance: 55 },
+            'Uncommon': { color: '#4b69ff', chance: 22 },
+            'Rare': { color: '#8847ff', chance: 12 },
+            'Epic': { color: '#d32ce6', chance: 6 },
+            'Legendary': { color: '#eb4b4b', chance: 3 },
+            'Mythic': { color: '#ffd700', chance: 2 }
+        };
+
+        // ================================================================
+        //  WEAPON DATABASE (all weapons)
+        // ================================================================
+        const DB_GUNS = {
+            'st_1': { id: 'st_1', name: 'Glock-18 | Rust', rarity: 'Common', value: 2.50, type: 'glock' },
+            'st_2': { id: 'st_2', name: 'USP-S | Forest', rarity: 'Common', value: 3.00, type: 'usp' },
+            'st_3': { id: 'st_3', name: 'M4A4 | Hellfire', rarity: 'Uncommon', value: 8.00, type: 'm4' },
+            'st_4': { id: 'st_4', name: 'FAMAS | Pulse', rarity: 'Uncommon', value: 7.00, type: 'famas' },
+            'st_5': { id: 'st_5', name: 'AK-47 | Fuel', rarity: 'Rare', value: 25.00, type: 'ak' },
+            'st_6': { id: 'st_6', name: 'AWP | Wildfire', rarity: 'Epic', value: 75.00, type: 'awp' },
+            'st_7': { id: 'st_7', name: 'Karambit | Rust', rarity: 'Legendary', value: 300.00, type: 'karambit' },
+            'st_8': { id: 'st_8', name: 'Butterfly Knife | Fade', rarity: 'Mythic', value: 1200.00, type: 'butterfly' },
+            'cy_1': { id: 'cy_1', name: 'P250 | Neon', rarity: 'Common', value: 5.00, type: 'glock' },
+            'cy_2': { id: 'cy_2', name: 'MAC-10 | Cyber', rarity: 'Uncommon', value: 15.00, type: 'mac10' },
+            'cy_3': { id: 'cy_3', name: 'MP9 | Dart', rarity: 'Uncommon', value: 12.00, type: 'mp9' },
+            'cy_4': { id: 'cy_4', name: 'M4A1-S | Phase', rarity: 'Rare', value: 45.00, type: 'm4' },
+            'cy_5': { id: 'cy_5', name: 'SG 553 | Cyberpunk', rarity: 'Epic', value: 85.00, type: 'sg' },
+            'cy_6': { id: 'cy_6', name: 'Desert Eagle | Blaze', rarity: 'Legendary', value: 350.00, type: 'deagle' },
+            'cy_7': { id: 'cy_7', name: 'Talon Knife | Night', rarity: 'Legendary', value: 400.00, type: 'talon' },
+            'cy_8': { id: 'cy_8', name: 'M9 Bayonet | Tiger Tooth', rarity: 'Mythic', value: 1800.00, type: 'm9' },
+            'ar_1': { id: 'ar_1', name: 'Galil | Shattered', rarity: 'Common', value: 3.50, type: 'galil' },
+            'ar_2': { id: 'ar_2', name: 'FAMAS | Pulse', rarity: 'Common', value: 4.00, type: 'famas' },
+            'ar_3': { id: 'ar_3', name: 'AUG | Neon Rider', rarity: 'Uncommon', value: 12.00, type: 'aug' },
+            'ar_4': { id: 'ar_4', name: 'SCAR-20 | Enforcer', rarity: 'Rare', value: 30.00, type: 'scar' },
+            'ar_5': { id: 'ar_5', name: 'SSG 08 | Dragonfire', rarity: 'Epic', value: 95.00, type: 'scout' },
+            'ar_6': { id: 'ar_6', name: 'G3SG1 | Contractor', rarity: 'Epic', value: 100.00, type: 'g3sg1' },
+            'ar_7': { id: 'ar_7', name: 'Karambit | Fade', rarity: 'Legendary', value: 400.00, type: 'karambit' },
+            'ar_8': { id: 'ar_8', name: 'Butterfly Knife | Marble', rarity: 'Mythic', value: 2000.00, type: 'butterfly' },
+            'sm_1': { id: 'sm_1', name: 'TMP | Dart', rarity: 'Common', value: 4.00, type: 'tmp' },
+            'sm_2': { id: 'sm_2', name: 'MP7 | Scorch', rarity: 'Common', value: 5.00, type: 'mp7' },
+            'sm_3': { id: 'sm_3', name: 'UMP-45 | Carbon', rarity: 'Uncommon', value: 10.00, type: 'ump' },
+            'sm_4': { id: 'sm_4', name: 'P90 | Death by Kitty', rarity: 'Rare', value: 28.00, type: 'p90' },
+            'sm_5': { id: 'sm_5', name: 'PP-Bizon | Harvester', rarity: 'Rare', value: 35.00, type: 'bizon' },
+            'sm_6': { id: 'sm_6', name: 'MAC-10 | Neon', rarity: 'Epic', value: 80.00, type: 'mac10' },
+            'sm_7': { id: 'sm_7', name: 'MP9 | Phosphor', rarity: 'Legendary', value: 250.00, type: 'mp9' },
+            'sm_8': { id: 'sm_8', name: 'Talon Knife | Night', rarity: 'Mythic', value: 1400.00, type: 'talon' },
+            'lg_1': { id: 'lg_1', name: 'Dual Elites | Contractor', rarity: 'Common', value: 4.50, type: 'dual' },
+            'lg_2': { id: 'lg_2', name: 'M249 | Jungle', rarity: 'Uncommon', value: 14.00, type: 'm249' },
+            'lg_3': { id: 'lg_3', name: 'Negev | Dazzle', rarity: 'Uncommon', value: 16.00, type: 'negev' },
+            'lg_4': { id: 'lg_4', name: 'AUG | Neon Rider', rarity: 'Rare', value: 32.00, type: 'aug' },
+            'lg_5': { id: 'lg_5', name: 'G3SG1 | Contractor', rarity: 'Epic', value: 90.00, type: 'g3sg1' },
+            'lg_6': { id: 'lg_6', name: 'SCAR-20 | Enforcer', rarity: 'Epic', value: 95.00, type: 'scar' },
+            'lg_7': { id: 'lg_7', name: 'M9 Bayonet | Tiger Tooth', rarity: 'Legendary', value: 500.00, type: 'm9' },
+            'lg_8': { id: 'lg_8', name: 'Karambit | Gamma Doppler', rarity: 'Mythic', value: 2200.00, type: 'karambit' },
+            'el_1': { id: 'el_1', name: 'MP5-SD | Phosphor', rarity: 'Common', value: 5.50, type: 'mp9' },
+            'el_2': { id: 'el_2', name: 'MP9 | Dart', rarity: 'Common', value: 6.00, type: 'mp9' },
+            'el_3': { id: 'el_3', name: 'UMP-9 | Crimson', rarity: 'Uncommon', value: 12.00, type: 'ump' },
+            'el_4': { id: 'el_4', name: 'M4A1-S | Golden Coil', rarity: 'Rare', value: 35.00, type: 'm4' },
+            'el_5': { id: 'el_5', name: 'AK-47 | Fire Serpent', rarity: 'Epic', value: 120.00, type: 'ak' },
+            'el_6': { id: 'el_6', name: 'AWP | Dragon Lore', rarity: 'Legendary', value: 380.00, type: 'awp' },
+            'el_7': { id: 'el_7', name: 'Butterfly Knife | Marble', rarity: 'Legendary', value: 600.00, type: 'butterfly' },
+            'el_8': { id: 'el_8', name: 'M9 Bayonet | Fade', rarity: 'Mythic', value: 2500.00, type: 'm9' },
+            'no_1': { id: 'no_1', name: 'Nova | Polar', rarity: 'Common', value: 4.00, type: 'nova' },
+            'no_2': { id: 'no_2', name: 'XM1014 | Quad', rarity: 'Uncommon', value: 12.00, type: 'xm1014' },
+            'no_3': { id: 'no_3', name: 'MAG-7 | Heat', rarity: 'Uncommon', value: 14.00, type: 'shotgun' },
+            'no_4': { id: 'no_4', name: 'R8 Revolver | Crimson', rarity: 'Rare', value: 28.00, type: 'r8' },
+            'no_5': { id: 'no_5', name: 'M249 | Spectre', rarity: 'Epic', value: 88.00, type: 'm249' },
+            'no_6': { id: 'no_6', name: 'Negev | Dazzle', rarity: 'Epic', value: 92.00, type: 'negev' },
+            'no_7': { id: 'no_7', name: 'Talon Knife | Night', rarity: 'Legendary', value: 450.00, type: 'talon' },
+            'no_8': { id: 'no_8', name: 'Karambit | Night', rarity: 'Mythic', value: 1900.00, type: 'karambit' },
+            'ph_1': { id: 'ph_1', name: 'MP9 | Dart', rarity: 'Common', value: 5.00, type: 'mp9' },
+            'ph_2': { id: 'ph_2', name: 'PP-Bizon | Jungle', rarity: 'Uncommon', value: 14.00, type: 'bizon' },
+            'ph_3': { id: 'ph_3', name: 'SG 553 | Tiger', rarity: 'Rare', value: 35.00, type: 'sg' },
+            'ph_4': { id: 'ph_4', name: 'AWP | Dragon Lore', rarity: 'Epic', value: 120.00, type: 'awp' },
+            'ph_5': { id: 'ph_5', name: 'AK-47 | Fire Serpent', rarity: 'Legendary', value: 350.00, type: 'ak' },
+            'ph_6': { id: 'ph_6', name: 'M4A1-S | Golden Coil', rarity: 'Legendary', value: 370.00, type: 'm4' },
+            'ph_7': { id: 'ph_7', name: 'M9 Bayonet | Tiger Tooth', rarity: 'Legendary', value: 600.00, type: 'm9' },
+            'ph_8': { id: 'ph_8', name: 'Butterfly Knife | Fade', rarity: 'Mythic', value: 2800.00, type: 'butterfly' },
+            'ga_1': { id: 'ga_1', name: 'Glock-18 | Wasteland', rarity: 'Common', value: 6.00, type: 'glock' },
+            'ga_2': { id: 'ga_2', name: 'USP-S | Neo-Noir', rarity: 'Uncommon', value: 18.00, type: 'usp' },
+            'ga_3': { id: 'ga_3', name: 'M4A4 | Desolate Space', rarity: 'Rare', value: 40.00, type: 'm4' },
+            'ga_4': { id: 'ga_4', name: 'AK-47 | Bloodsport', rarity: 'Epic', value: 110.00, type: 'ak' },
+            'ga_5': { id: 'ga_5', name: 'AWP | Fever Dream', rarity: 'Epic', value: 115.00, type: 'awp' },
+            'ga_6': { id: 'ga_6', name: 'Karambit | Gamma Doppler', rarity: 'Legendary', value: 500.00, type: 'karambit' },
+            'ga_7': { id: 'ga_7', name: 'Butterfly Knife | Gamma', rarity: 'Legendary', value: 550.00, type: 'butterfly' },
+            'ga_8': { id: 'ga_8', name: 'M9 Bayonet | Gamma', rarity: 'Mythic', value: 3000.00, type: 'm9' },
+            'sp_1': { id: 'sp_1', name: 'P250 | Spectrum', rarity: 'Common', value: 7.00, type: 'glock' },
+            'sp_2': { id: 'sp_2', name: 'MAC-10 | Spectrum', rarity: 'Uncommon', value: 20.00, type: 'mac10' },
+            'sp_3': { id: 'sp_3', name: 'MP9 | Spectrum', rarity: 'Rare', value: 45.00, type: 'mp9' },
+            'sp_4': { id: 'sp_4', name: 'M4A1-S | Spectrum', rarity: 'Epic', value: 130.00, type: 'm4' },
+            'sp_5': { id: 'sp_5', name: 'AK-47 | Spectrum', rarity: 'Legendary', value: 400.00, type: 'ak' },
+            'sp_6': { id: 'sp_6', name: 'AWP | Spectrum', rarity: 'Legendary', value: 420.00, type: 'awp' },
+            'sp_7': { id: 'sp_7', name: 'Talon Knife | Spectrum', rarity: 'Legendary', value: 650.00, type: 'talon' },
+            'sp_8': { id: 'sp_8', name: 'Karambit | Spectrum', rarity: 'Mythic', value: 3500.00, type: 'karambit' },
+            // Additional generated weapons for high-end cases (these will be added in generateAdditionalCases)
+        };
+
+        // ================================================================
+        //  GENERATE WEAPONS FOR NEW CASES
+        // ================================================================
+        function generateWeaponsForCase(caseId, count, casePrice) {
+            const types = ['glock','usp','deagle','dual','r8','ak','m4','famas','galil','sg','aug','scar','g3sg1','awp','scout','mac10','tmp','mp9','mp7','ump','p90','bizon','shotgun','nova','xm1014','m249','negev','karambit','butterfly','talon','m9'];
+            const skins = ['Crimson','Fade','Marble','Tiger','Neon','Cyber','Spectral','Phantom','Inferno','Storm','Blaze','Ice','Fire','Night','Day','Dark','Light','Shadow','Ghost','Venom','Fury','Rage','Zen','Onyx','Pearl','Gold','Platinum','Diamond','Obsidian','Amber','Ruby','Sapphire','Emerald','Cobalt','Violet','Scarlet','Topaz','Jade','Amethyst'];
+            const rarityOrder = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+            let rarityAssign = [];
+            for (let r of rarityOrder) rarityAssign.push(r);
+            for (let i = 0; i < count - 6; i++) {
+                const rand = Math.random();
+                if (rand < 0.4) rarityAssign.push('Common');
+                else if (rand < 0.7) rarityAssign.push('Uncommon');
+                else if (rand < 0.85) rarityAssign.push('Rare');
+                else if (rand < 0.95) rarityAssign.push('Epic');
+                else rarityAssign.push(Math.random() > 0.5 ? 'Legendary' : 'Mythic');
+            }
+            for (let i = rarityAssign.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rarityAssign[i], rarityAssign[j]] = [rarityAssign[j], rarityAssign[i]];
+            }
+
+            const isCheapCase = casePrice < 25;
+            const valueRanges = {
+                'Common': [0.03, 0.08],
+                'Uncommon': [0.08, 0.18],
+                'Rare': [0.18, 0.35],
+                'Epic': [0.35, 0.60],
+                'Legendary': [0.60, 1.0],
+                'Mythic': [1.0, 1.8]
+            };
+            const minValues = { 'Common': 1, 'Uncommon': 3, 'Rare': 10, 'Epic': 30, 'Legendary': 80, 'Mythic': 200 };
+            const map = {
+                'glock':'Glock-18','usp':'USP-S','deagle':'Desert Eagle','dual':'Dual Elites','r8':'R8 Revolver',
+                'ak':'AK-47','m4':'M4A4','famas':'FAMAS','galil':'Galil','sg':'SG 553','aug':'AUG','scar':'SCAR-20','g3sg1':'G3SG1',
+                'awp':'AWP','scout':'SSG 08','mac10':'MAC-10','tmp':'TMP','mp9':'MP9','mp7':'MP7','ump':'UMP-45','p90':'P90','bizon':'PP-Bizon',
+                'shotgun':'MAG-7','nova':'Nova','xm1014':'XM1014','m249':'M249','negev':'Negev',
+                'karambit':'Karambit','butterfly':'Butterfly Knife','talon':'Talon Knife','m9':'M9 Bayonet'
+            };
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                const rarity = rarityAssign[i];
+                const range = valueRanges[rarity];
+                const pct = range[0] + Math.random() * (range[1] - range[0]);
+                let value = casePrice * pct;
+                if (value < minValues[rarity]) value = minValues[rarity];
+                if (rarity === 'Rare' && value < casePrice * 1.1) value = casePrice * 1.1;
+                if (rarity === 'Epic' && value < casePrice * 1.3) value = casePrice * 1.3;
+                if (rarity === 'Legendary' && value < casePrice * 2.5) value = casePrice * 2.5;
+                if (rarity === 'Mythic' && value < casePrice * 5.0) value = casePrice * 5.0;
+                if (rarity === 'Uncommon' && isCheapCase && value < casePrice * 1.05) {
+                    value = casePrice * 1.05;
+                }
+                value = Math.round(value * 100) / 100;
+                let type = types[Math.floor(Math.random() * types.length)];
+                let skin = skins[Math.floor(Math.random() * skins.length)];
+                const base = map[type] || type;
+                const name = `${base} | ${skin}`;
+                result.push({ id: `${caseId}_${i+1}`, name, rarity, value, type });
+            }
+            return result;
+        }
+
+        // ================================================================
+        //  REBALANCE CASES
+        // ================================================================
+        function rebalanceCases(casesArray) {
+            const targetRatio = 0.90;
+            const cheapThreshold = 25;
+            casesArray.forEach(c => {
+                if (c.price === 0) return;
+                let ev = 0;
+                c.pool.forEach(id => {
+                    const item = DB_GUNS[id];
+                    if (!item) return;
+                    const chance = BASE_RARITIES[item.rarity]?.chance || 0;
+                    ev += item.value * (chance / 100);
+                });
+                if (ev === 0) return;
+                const targetEV = c.price * targetRatio;
+                const scale = targetEV / ev;
+                const isCheap = c.price < cheapThreshold;
+                c.pool.forEach(id => {
+                    const item = DB_GUNS[id];
+                    if (!item) return;
+                    item.value = Math.round(item.value * scale * 100) / 100;
+                    if (item.rarity === 'Rare' && item.value < c.price * 1.1) item.value = c.price * 1.1;
+                    if (item.rarity === 'Epic' && item.value < c.price * 1.3) item.value = c.price * 1.3;
+                    if (item.rarity === 'Legendary' && item.value < c.price * 2.5) item.value = c.price * 2.5;
+                    if (item.rarity === 'Mythic' && item.value < c.price * 5.0) item.value = c.price * 5.0;
+                    if (item.rarity === 'Uncommon' && isCheap && item.value < c.price * 1.05) {
+                        item.value = c.price * 1.05;
+                    }
+                    const minVal = { 'Common': 1, 'Uncommon': 3, 'Rare': 10, 'Epic': 30, 'Legendary': 80, 'Mythic': 200 };
+                    if (item.value < (minVal[item.rarity] || 1)) item.value = minVal[item.rarity] || 1;
+                    item.value = Math.round(item.value * 100) / 100;
+                });
+            });
+        }
+
+        // ================================================================
+        //  BASE CASES
+        // ================================================================
+        const baseCases = [
+            { id: 'case_starter', name: 'Starter Case', price: 5, color: '#8847ff', pool: ['st_1','st_2','st_3','st_4','st_5','st_6','st_7','st_8'] },
+            { id: 'case_arsenal', name: 'Arsenal Case', price: 10, color: '#ff6b6b', pool: ['ar_1','ar_2','ar_3','ar_4','ar_5','ar_6','ar_7','ar_8'] },
+            { id: 'case_smg', name: 'SMG Collection', price: 12, color: '#feca57', pool: ['sm_1','sm_2','sm_3','sm_4','sm_5','sm_6','sm_7','sm_8'] },
+            { id: 'case_cyber', name: 'Cyber Case', price: 15, color: '#00f5d4', pool: ['cy_1','cy_2','cy_3','cy_4','cy_5','cy_6','cy_7','cy_8'] },
+            { id: 'case_night', name: 'Night Ops Case', price: 18, color: '#2d3436', pool: ['no_1','no_2','no_3','no_4','no_5','no_6','no_7','no_8'] },
+            { id: 'case_legacy', name: 'Legacy Case', price: 20, color: '#a29bfe', pool: ['lg_1','lg_2','lg_3','lg_4','lg_5','lg_6','lg_7','lg_8'] },
+            { id: 'case_elite', name: 'Elite Case', price: 25, color: '#fd79a8', pool: ['el_1','el_2','el_3','el_4','el_5','el_6','el_7','el_8'] },
+            { id: 'case_phoenix', name: 'Phoenix Case', price: 30, color: '#e17055', pool: ['ph_1','ph_2','ph_3','ph_4','ph_5','ph_6','ph_7','ph_8'] },
+            { id: 'case_gamma', name: 'Gamma Case', price: 40, color: '#00ff44', pool: ['ga_1','ga_2','ga_3','ga_4','ga_5','ga_6','ga_7','ga_8'] },
+            { id: 'case_spectrum', name: 'Spectrum Case', price: 50, color: '#ff00ff', pool: ['sp_1','sp_2','sp_3','sp_4','sp_5','sp_6','sp_7','sp_8'] }
+        ];
+
+        // ================================================================
+        //  GAME ENGINE
+        // ================================================================
+        window.game = {
+            db: {}, currentUser: null, opening: false, autoRolling: false, activeCase: null, wonItemTemp: null,
+            luckBonus: 0, openingTimeout: null, pendingSellIndex: null, isFreeCase: false,
+            tickInterval: null, market: null,
+
+            init() {
+                SoundManager.init();
+                this.generateAdditionalCases();
+                this.loadDatabase();
+                this.loadMarket();
+                this.renderShop();
+                document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.auth(); });
+                document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.auth(); });
+                setInterval(() => this.updateUI(), 30000);
+            },
+
+            toggleSound() {
+                SoundManager.toggle();
+            },
+
+            generateAdditionalCases() {
+                const ids = ['ruby','sapphire','emerald','diamond','onyx','pearl','gold','platinum','obsidian','titanium'];
+                const names = ['Ruby Case','Sapphire Case','Emerald Case','Diamond Case','Onyx Case','Pearl Case','Gold Case','Platinum Case','Obsidian Case','Titanium Case'];
+                const prices = [75, 100, 150, 200, 300, 400, 500, 750, 1000, 1500];
+                const colors = ['#ff4500','#ff8c00','#ffd700','#7fff00','#00fa9a','#00bfff','#1e90ff','#9370db','#ff1493','#c71585'];
+                for (let i = 0; i < ids.length; i++) {
+                    const weapons = generateWeaponsForCase(ids[i], 8, prices[i]);
+                    weapons.forEach(w => { DB_GUNS[w.id] = w; });
+                    const pool = weapons.map(w => w.id);
+                    window.CASES.push({ id: `case_${ids[i]}`, name: names[i], price: prices[i], color: colors[i], pool });
+                }
+                rebalanceCases(window.CASES);
+                window.CASES.sort((a, b) => a.price - b.price);
+            },
+
+            loadMarket() {
+                // Force fresh market on every init (ignore stored)
+                this.generateMarketListings();
+            },
+
+            generateMarketListings() {
+                const keys = Object.keys(DB_GUNS);
+                const listings = [];
+                // We want exactly 5 items. Use rarity weights but ensure we get 5.
+                const weights = [0.50, 0.30, 0.15, 0.04, 0.008, 0.002];
+                const rarityOrder = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+
+                // Create a pool of all weapon IDs sorted by rarity (we'll just pick randomly from each rarity)
+                // We'll do 5 iterations, each picking a rarity based on weights, then a random item from that rarity.
+                for (let i = 0; i < 5; i++) {
+                    let roll = Math.random();
+                    let selectedRarity = 'Common';
+                    let cum = 0;
+                    for (let j = 0; j < weights.length; j++) {
+                        cum += weights[j];
+                        if (roll <= cum) {
+                            selectedRarity = rarityOrder[j];
+                            break;
+                        }
+                    }
+
+                    const candidates = keys.filter(id => DB_GUNS[id].rarity === selectedRarity);
+                    let id, item;
+                    if (candidates.length === 0) {
+                        // fallback to any
+                        const fallbackId = keys[Math.floor(Math.random() * keys.length)];
+                        id = fallbackId;
+                        item = DB_GUNS[fallbackId];
+                    } else {
+                        id = candidates[Math.floor(Math.random() * candidates.length)];
+                        item = DB_GUNS[id];
+                    }
+                    // Price is the item's full value (no discount)
+                    const price = item.value;
+                    listings.push({ itemId: id, price: price, seller: 'CyberBot' });
+                }
+
+                this.market = { listings: listings, lastRefresh: Date.now() };
+                localStorage.setItem('cyberLootMarket', JSON.stringify(this.market));
+                if (document.getElementById('market-view').classList.contains('active')) {
+                    this.renderMarket();
+                }
+            },
+
+            renderMarket() {
+                const grid = document.getElementById('market-grid');
+                grid.innerHTML = '';
+                if (!this.market || !this.market.listings || this.market.listings.length === 0) {
+                    grid.innerHTML = '<div class="market-sold-out">All items sold out! Check back tomorrow.</div>';
+                    this.updateMarketTimer();
+                    return;
+                }
+
+                this.updateMarketTimer();
+                this.market.listings.forEach((listing, index) => {
+                    const item = DB_GUNS[listing.itemId];
+                    if (!item) return;
+                    const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.setProperty('--rarity-color', color);
+                    const svg = weaponSVG(item.type, color, false);
+                    const price = listing.price.toFixed(2);
+
+                    card.innerHTML = `
+                        <div class="item-rarity" style="--rarity-color:${color}">${item.rarity}</div>
+                        <div class="item-name">${item.name}</div>
+                        <div style="display:flex;justify-content:center;align-items:center;padding:0.3rem 0;"><div style="width:90px;height:75px;">${svg}</div></div>
+                        <div style="margin-bottom:0.5rem;">
+                            <span style="color: var(--text-main); font-weight: 700; font-size: 1.1rem;">$${price}</span>
+                        </div>
+                        <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.5rem;">Sold by: ${listing.seller}</div>
+                        <button class="btn" onclick="game.buyMarketItem(${index})">🛒 BUY</button>
+                    `;
+                    grid.appendChild(card);
+                });
+            },
+
+            updateMarketTimer() {
+                const timerEl = document.getElementById('market-timer');
+                if (!timerEl) return;
+                if (!this.market) {
+                    timerEl.textContent = '⏳ Loading market...';
+                    return;
+                }
+                const nextRefresh = new Date(this.market.lastRefresh + 24 * 60 * 60 * 1000);
+                const timeLeft = nextRefresh - Date.now();
+                if (timeLeft <= 0) {
+                    timerEl.textContent = '🔄 Refreshing market...';
+                    this.generateMarketListings();
+                    return;
+                }
+                const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                timerEl.textContent = `🔄 Refreshes in ${hours}h ${minutes}m`;
+            },
+
+            buyMarketItem(index) {
+                const listing = this.market.listings[index];
+                if (!listing) return;
+                const item = DB_GUNS[listing.itemId];
+                if (!item) return;
+
+                const data = this.getUserData();
+                if (data.money < listing.price) {
+                    alert('❌ Not enough money!');
+                    return;
+                }
+
+                data.money -= listing.price;
+                data.inventory.push({ ...item });
+                this.market.listings.splice(index, 1);
+                localStorage.setItem('cyberLootMarket', JSON.stringify(this.market));
+                this.saveDatabase();
+                this.updateUI();
+                this.renderMarket();
+                this.renderInventory();
+                SoundManager.click();
+                alert(`✅ Purchased ${item.name} for $${listing.price.toFixed(2)}!`);
+            },
+
+            loadDatabase() {
+                try { const raw = localStorage.getItem('cyberLootDB'); this.db = raw ? JSON.parse(raw) : { users: {} }; }
+                catch (_) { this.db = { users: {} }; }
+            },
+
+            saveDatabase() { localStorage.setItem('cyberLootDB', JSON.stringify(this.db)); },
+
+            getUserData() {
+                if (!this.currentUser) return null;
+                if (!this.db.users[this.currentUser]) {
+                    this.db.users[this.currentUser] = { password: '', money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: [] };
+                    this.saveDatabase();
+                }
+                return this.db.users[this.currentUser];
+            },
+
+            auth() {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const errEl = document.getElementById('login-error');
+                errEl.style.display = 'none';
+                if (!username) { errEl.textContent = '❌ Please enter a username.'; errEl.style.display = 'block'; return; }
+                if (!password) { errEl.textContent = '❌ Please enter a password.'; errEl.style.display = 'block'; return; }
+                if (username.length < 3) { errEl.textContent = '❌ Username must be at least 3 characters.'; errEl.style.display = 'block'; return; }
+                if (this.db.users[username]) {
+                    if (this.db.users[username].password !== password) {
+                        errEl.textContent = '❌ Incorrect password.';
+                        errEl.style.display = 'block';
+                        return;
+                    }
+                } else {
+                    this.db.users[username] = { password: password, money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: [] };
+                }
+                this.saveDatabase();
+                this.currentUser = username;
+                this.loginSuccess();
+            },
+
+            loginSuccess() {
+                document.getElementById('login-screen').classList.remove('active');
+                document.getElementById('main-ui').classList.add('active');
+                document.getElementById('ui-username').textContent = this.currentUser;
+                this.updateUI();
+                this.switchView('shop');
+            },
+
+            logout() {
+                this.stopAutoRoll();
+                this.currentUser = null;
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('login-error').style.display = 'none';
+                document.getElementById('main-ui').classList.remove('active');
+                document.getElementById('login-screen').classList.add('active');
+            },
+
+            updateUI() {
+                const data = this.getUserData();
+                if (!data) return;
+                document.getElementById('ui-balance').textContent = data.money.toFixed(2);
+                document.getElementById('ui-username').textContent = this.currentUser;
+                let totalValue = 0;
+                data.inventory.forEach(item => { totalValue += item.value; });
+                document.getElementById('ui-value').textContent = totalValue;
+                document.getElementById('inv-total-value').textContent = totalValue.toFixed(2);
+                document.getElementById('bp-value').textContent = totalValue;
+
+                const milestones = [500, 1000, 2000, 5000, 10000, 20000, 50000];
+                let reached = 0;
+                for (let m of milestones) if (totalValue >= m) reached++;
+                this.luckBonus = reached;
+                document.getElementById('ui-luck').textContent = this.luckBonus;
+                document.getElementById('bp-luck').textContent = '+' + this.luckBonus + '%';
+
+                let next = milestones.find(m => totalValue < m);
+                if (!next) next = milestones[milestones.length-1] * 2;
+                const prev = milestones.filter(m => m < next).pop() || 0;
+                const progress = next > prev ? ((totalValue - prev) / (next - prev) * 100) : 0;
+                document.getElementById('bp-fill').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('bp-next').textContent = next ? '$' + next : 'Max';
+
+                const container = document.getElementById('bp-milestones');
+                container.innerHTML = '';
+                milestones.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'bp-milestone' + (totalValue >= m ? ' unlocked' : '');
+                    div.textContent = '$' + m;
+                    container.appendChild(div);
+                });
+
+                const lastClaim = data.freeCaseClaim || 0;
+                const now = Date.now();
+                const cooldown = 10 * 60 * 1000;
+                const remaining = Math.max(0, cooldown - (now - lastClaim));
+                const minutes = Math.floor(remaining / (60 * 1000));
+                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+                const timerEl = document.getElementById('free-case-timer');
+                if (remaining > 0) {
+                    timerEl.textContent = `⏳ ${minutes}m ${seconds}s`;
+                    document.getElementById('free-case-btn').style.opacity = '0.5';
+                    document.getElementById('free-case-btn').style.pointerEvents = 'none';
+                } else {
+                    timerEl.textContent = '✅ Ready!';
+                    document.getElementById('free-case-btn').style.opacity = '1';
+                    document.getElementById('free-case-btn').style.pointerEvents = 'auto';
+                }
+
+                if (document.getElementById('inventory-view').classList.contains('active')) this.renderInventory();
+                if (document.getElementById('market-view').classList.contains('active')) this.renderMarket();
+                if (document.getElementById('index-view').classList.contains('active')) this.renderIndex();
+            },
+
+            renderIndex() {
+                const data = this.getUserData();
+                const grid = document.getElementById('index-grid');
+                grid.innerHTML = '';
+                const allIds = Object.keys(DB_GUNS);
+                const collected = data.collection || [];
+
+                // Stats
+                const total = allIds.length;
+                const collectedCount = collected.length;
+                document.getElementById('index-collected').textContent = collectedCount;
+                document.getElementById('index-total').textContent = total;
+                document.getElementById('index-progress').textContent = total > 0 ? Math.round((collectedCount / total) * 100) + '%' : '0%';
+
+                // Sort by rarity order, then name
+                const rarityOrder = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
+                const sortedIds = allIds.sort((a, b) => {
+                    const ra = DB_GUNS[a].rarity;
+                    const rb = DB_GUNS[b].rarity;
+                    const ia = rarityOrder.indexOf(ra);
+                    const ib = rarityOrder.indexOf(rb);
+                    if (ia !== ib) return ia - ib;
+                    return DB_GUNS[a].name.localeCompare(DB_GUNS[b].name);
+                });
+
+                sortedIds.forEach(id => {
+                    const item = DB_GUNS[id];
+                    const isOwned = collected.includes(id);
+                    const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
+                    const div = document.createElement('div');
+                    div.className = 'index-item' + (isOwned ? ' unlocked' : ' locked');
+                    if (isOwned) {
+                        div.style.setProperty('--rarity-color', color);
+                    }
+                    const svg = weaponSVG(item.type, color, !isOwned);
+                    div.innerHTML = `
+                        <div class="index-svg">${svg}</div>
+                        <div class="index-name">${item.name}</div>
+                        <div class="index-rarity" style="color:${isOwned ? color : '#666'}">${item.rarity}</div>
+                    `;
+                    grid.appendChild(div);
+                });
+            },
+
+            switchView(viewName) {
+                if (this.opening && viewName !== 'opening') return;
+                document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+                document.getElementById(`${viewName}-view`).classList.add('active');
+                document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
+                const btn = document.getElementById(`nav-${viewName}`);
+                if (btn) btn.classList.add('active');
+                if (viewName === 'inventory') this.renderInventory();
+                if (viewName === 'shop') this.renderShop();
+                if (viewName === 'market') this.renderMarket();
+                if (viewName === 'battlepass') this.updateUI();
+                if (viewName === 'index') this.renderIndex();
+            },
+
+            renderShop() {
+                const grid = document.getElementById('shop-grid');
+                grid.innerHTML = '';
+                window.CASES.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.setProperty('--rarity-color', c.color);
+                    card.innerHTML = `
+                        <div class="item-name">${c.name}</div>
+                        <div class="case-image">${caseImageHTML(c.color, c.name)}</div>
+                        <div class="item-price">$${c.price.toFixed(2)}</div>
+                        <button class="btn" onclick="game.inspectCase('${c.id}')">🔍 INSPECT</button>
+                    `;
+                    grid.appendChild(card);
+                });
+            },
+
+            renderInventory() {
+                const data = this.getUserData();
+                const grid = document.getElementById('inventory-grid');
+                grid.innerHTML = '';
+                if (!data || data.inventory.length === 0) {
+                    grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:1rem 0;">🎒 Empty</p>';
+                    return;
+                }
+                data.inventory.forEach((item, idx) => {
+                    const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.setProperty('--rarity-color', color);
+                    const svg = weaponSVG(item.type, color, false);
+                    const isLocked = data.locked && data.locked.includes(idx);
+                    const isHigh = ['Epic','Legendary','Mythic'].includes(item.rarity);
+                    card.innerHTML = `
+                        <div class="item-rarity" style="--rarity-color:${color}">${item.rarity}</div>
+                        <div class="item-name">${item.name}</div>
+                        <div style="display:flex;justify-content:center;align-items:center;padding:0.3rem 0;"><div style="width:90px;height:75px;">${svg}</div></div>
+                        <div class="item-price">$${item.value.toFixed(2)}</div>
+                        ${isLocked ? '<div class="lock-badge">🔒 Locked</div>' : ''}
+                        ${isHigh ? '<div style="font-size:0.55rem;color:var(--mythic);">⭐</div>' : ''}
+                        <div class="item-actions">
+                            <button class="btn btn-sm ${isLocked ? 'btn-gold' : 'btn'}" onclick="game.toggleLock(${idx})">${isLocked ? '🔓' : '🔒'}</button>
+                            <button class="btn btn-sm btn-danger" onclick="game.sellItem(${idx})" ${isLocked ? 'disabled style="background:#555;cursor:not-allowed;"' : ''}>SELL</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                let total = 0;
+                data.inventory.forEach(item => { total += item.value; });
+                document.getElementById('inv-total-value').textContent = total.toFixed(2);
+            },
+
+            toggleLock(idx) {
+                const data = this.getUserData();
+                if (!data.locked) data.locked = [];
+                const i = data.locked.indexOf(idx);
+                if (i > -1) data.locked.splice(i, 1);
+                else data.locked.push(idx);
+                this.saveDatabase();
+                this.renderInventory();
+            },
+
+            sellItem(index) {
+                const data = this.getUserData();
+                if (data.locked && data.locked.includes(index)) { alert('🔒 Locked!'); return; }
+                const item = data.inventory[index];
+                if (['Epic','Legendary','Mythic'].includes(item.rarity)) {
+                    this.pendingSellIndex = index;
+                    document.getElementById('confirm-message').textContent = `Sell "${item.name}" (${item.rarity}) for $${item.value.toFixed(2)}?`;
+                    document.getElementById('confirm-modal').classList.add('active');
+                    return;
+                }
+                this.doActualSell(index);
+            },
+
+            confirmSell() {
+                document.getElementById('confirm-modal').classList.remove('active');
+                if (this.pendingSellIndex !== null) {
+                    this.doActualSell(this.pendingSellIndex);
+                    this.pendingSellIndex = null;
+                }
+            },
+
+            cancelSell() {
+                document.getElementById('confirm-modal').classList.remove('active');
+                this.pendingSellIndex = null;
+            },
+
+            doActualSell(index) {
+                const data = this.getUserData();
+                const item = data.inventory[index];
+                data.money += item.value;
+                data.inventory.splice(index, 1);
+                if (data.locked) {
+                    const i = data.locked.indexOf(index);
+                    if (i > -1) data.locked.splice(i, 1);
+                    data.locked = data.locked.map(x => x > index ? x - 1 : x);
+                }
+                this.saveDatabase();
+                this.updateUI();
+                this.renderInventory();
+            },
+
+            inspectCase(caseId) {
+                this.activeCase = window.CASES.find(c => c.id === caseId);
+                if (!this.activeCase) return;
+                document.getElementById('inspector-title').textContent = this.activeCase.name;
+                document.getElementById('btn-inspect-open').textContent = `🔓 OPEN ($${this.activeCase.price.toFixed(2)})`;
+                const grid = document.getElementById('inspector-items');
+                grid.innerHTML = '';
+                const items = [];
+                this.activeCase.pool.forEach(id => {
+                    if (!DB_GUNS[id]) return;
+                    items.push(DB_GUNS[id]);
+                });
+                items.sort((a, b) => a.value - b.value);
+                items.forEach(item => {
+                    const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
+                    const el = document.createElement('div');
+                    el.className = 'inspector-item';
+                    el.style.setProperty('--rarity-color', color);
+                    const svg = weaponSVG(item.type, color, false);
+                    el.innerHTML = `
+                        <div class="weapon-svg-mini">${svg}</div>
+                        <div class="label" style="color:${color}">${item.rarity}</div>
+                        <div class="name">${item.name}</div>
+                        <div style="font-size:0.6rem;color:var(--text-muted);">$${item.value.toFixed(2)}</div>
+                    `;
+                    grid.appendChild(el);
+                });
+                document.getElementById('inspector-modal').classList.add('active');
+            },
+
+            closeInspector() { document.getElementById('inspector-modal').classList.remove('active'); },
+
+            rollMath(pool) {
+                const luck = this.luckBonus / 100;
+                const rarities = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+                let chances = {};
+                let total = 0;
+                rarities.forEach((r, i) => {
+                    let base = BASE_RARITIES[r].chance;
+                    if (i > 0) base += luck * 5;
+                    else base -= luck * 20;
+                    const count = pool.filter(id => DB_GUNS[id] && DB_GUNS[id].rarity === r).length;
+                    if (count === 0) base = 0;
+                    chances[r] = Math.max(0.01, base);
+                    total += chances[r];
+                });
+                const roll = Math.random() * 100;
+                let cum = 0;
+                for (const r of rarities) {
+                    if (chances[r] === 0) continue;
+                    const normalized = (chances[r] / total) * 100;
+                    cum += normalized;
+                    if (roll <= cum) {
+                        const items = pool.filter(id => DB_GUNS[id] && DB_GUNS[id].rarity === r);
+                        if (items.length > 0) {
+                            const chosen = items[Math.floor(Math.random() * items.length)];
+                            return DB_GUNS[chosen];
+                        }
+                    }
+                }
+                return DB_GUNS[pool[0]];
+            },
+
+            startRoll(isAuto) {
+                const data = this.getUserData();
+                if (data.money < this.activeCase.price) { alert('❌ Not enough funds!'); return; }
+                this.autoRolling = isAuto;
+                this.isFreeCase = false;
+                this.closeInspector();
+                this.executeRoll(this.activeCase);
+            },
+
+            executeRoll(caseObj) {
+                const data = this.getUserData();
+                const isFree = caseObj.price === 0;
+                if (!isFree && data.money < caseObj.price) { alert('❌ Not enough funds!'); this.stopAutoRoll(); this.switchView('shop'); return; }
+                if (!isFree) data.money -= caseObj.price;
+                this.saveDatabase();
+                this.updateUI();
+
+                this.opening = true;
+                this.switchView('opening');
+                document.getElementById('opening-case-name').textContent = `🔓 Opening ${caseObj.name}...`;
+
+                if (this.autoRolling && !isFree) {
+                    document.getElementById('btn-stop-auto').style.display = 'inline-block';
+                    document.getElementById('btn-skip-opening').style.display = 'none';
+                } else {
+                    document.getElementById('btn-stop-auto').style.display = 'none';
+                    document.getElementById('btn-skip-opening').style.display = 'inline-block';
+                }
+
+                SoundManager.click();
+                SoundManager.reelSpinStart();
+                let tickCount = 0;
+                if (this.tickInterval) clearInterval(this.tickInterval);
+                this.tickInterval = setInterval(() => {
+                    SoundManager.reelTick();
+                    tickCount++;
+                    if (tickCount > 50) clearInterval(this.tickInterval);
+                }, 100);
+
+                const reel = document.getElementById('reel');
+                reel.style.transition = 'none';
+                reel.style.transform = 'translateX(0px)';
+                reel.innerHTML = '';
+
+                const strip = [];
+                for (let i = 0; i < 60; i++) strip.push(this.rollMath(caseObj.pool));
+                const winner = this.rollMath(caseObj.pool);
+                strip[50] = winner;
+                this.wonItemTemp = winner;
+
+                strip.forEach(item => {
+                    const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
+                    const el = document.createElement('div');
+                    el.className = 'reel-item';
+                    el.style.setProperty('--rarity-color', color);
+                    const svg = weaponSVG(item.type, color, false);
+                    el.innerHTML = `
+                        <div class="glow"></div>
+                        <div class="weapon-svg">${svg}</div>
+                        <div class="weapon-name">${item.name}</div>
+                        <div class="rarity-badge">${item.rarity}</div>
+                    `;
+                    reel.appendChild(el);
+                });
+
+                void reel.offsetWidth;
+                const container = document.querySelector('.reel-container');
+                const cw = container.offsetWidth;
+                const iw = 140 + 4;
+                const target = 50;
+                const offset = (target * iw) - (cw / 2) + (140 / 2);
+                const variance = (Math.random() * 60) - 30;
+                const finalOffset = offset + variance;
+
+                reel.style.transition = 'transform 5s cubic-bezier(0.08,0.82,0.17,1)';
+                reel.style.transform = `translateX(-${finalOffset}px)`;
+
+                this.openingTimeout = setTimeout(() => this.showWin(caseObj.name), 5200);
+            },
+
+            skipAnimation() {
+                if (!this.opening || this.autoRolling) return;
+                clearTimeout(this.openingTimeout);
+                if (this.tickInterval) clearInterval(this.tickInterval);
+                SoundManager.reelSpinStop();
+                this.showWin(this.activeCase?.name || 'Unknown');
+            },
+
+            stopAutoRoll() {
+                this.autoRolling = false;
+                document.getElementById('btn-stop-auto').style.display = 'none';
+                document.getElementById('btn-skip-opening').style.display = 'inline-block';
+                if (this.tickInterval) clearInterval(this.tickInterval);
+                SoundManager.reelSpinStop();
+            },
+
+            showWin(caseName) {
+                this.opening = false;
+                if (this.tickInterval) clearInterval(this.tickInterval);
+                SoundManager.reelSpinStop();
+
+                const w = this.wonItemTemp;
+                const color = BASE_RARITIES[w.rarity]?.color || '#b0c3d9';
+                const winContent = document.getElementById('win-content');
+                winContent.classList.remove('epic', 'legendary', 'mythic');
+                if (w.rarity === 'Epic') winContent.classList.add('epic');
+                if (w.rarity === 'Legendary') winContent.classList.add('legendary');
+                if (w.rarity === 'Mythic') winContent.classList.add('mythic');
+
+                switch (w.rarity) {
+                    case 'Common': SoundManager.revealCommon(); break;
+                    case 'Uncommon': SoundManager.revealUncommon(); break;
+                    case 'Rare': SoundManager.revealRare(); break;
+                    case 'Epic': SoundManager.revealEpic(); break;
+                    case 'Legendary': SoundManager.revealLegendary(); break;
+                    case 'Mythic': SoundManager.revealMythic(); break;
+                }
+
+                document.getElementById('win-rarity').textContent = w.rarity;
+                document.getElementById('win-rarity').style.color = color;
+                document.getElementById('win-name').textContent = w.name;
+                document.getElementById('win-value').textContent = w.value.toFixed(2);
+                document.getElementById('win-svg').innerHTML = weaponSVG(w.type, color, false);
+                document.getElementById('win-content').style.borderColor = color;
+
+                // Add to collection
+                this.addToCollection(w.id);
+
+                if (this.autoRolling) {
+                    document.getElementById('btn-win-keep').style.display = 'none';
+                    document.getElementById('btn-win-sell').style.display = 'none';
+                    const data = this.getUserData();
+                    data.inventory.push({ ...w });
+                    this.saveDatabase();
+                    this.updateUI();
+                    setTimeout(() => {
+                        document.getElementById('win-modal').classList.remove('active');
+                        if (this.autoRolling) this.executeRoll(this.activeCase);
+                    }, 1500);
+                } else {
+                    document.getElementById('btn-win-keep').style.display = 'inline-block';
+                    document.getElementById('btn-win-sell').style.display = 'inline-block';
+                }
+                document.getElementById('win-modal').classList.add('active');
+            },
+
+            addToCollection(id) {
+                const data = this.getUserData();
+                if (!data.collection) data.collection = [];
+                if (!data.collection.includes(id)) {
+                    data.collection.push(id);
+                    this.saveDatabase();
+                }
+            },
+
+            closeWinModal(sell) {
+                document.getElementById('win-modal').classList.remove('active');
+                const data = this.getUserData();
+                if (sell) data.money += this.wonItemTemp.value;
+                else data.inventory.push({ ...this.wonItemTemp });
+                this.saveDatabase();
+                this.updateUI();
+                this.switchView('inventory');
+            },
+
+            claimFreeCase() {
+                const data = this.getUserData();
+                const now = Date.now();
+                const cooldown = 10 * 60 * 1000;
+                if (now - (data.freeCaseClaim || 0) < cooldown) {
+                    alert('⏳ Free case is on cooldown! Wait 10 minutes.');
+                    return;
+                }
+                data.freeCaseClaim = now;
+                this.saveDatabase();
+                this.updateUI();
+                this.isFreeCase = true;
+                this.activeCase = FREE_CASE;
+                this.closeInspector();
+                this.executeRoll(FREE_CASE);
+            }
+        };
+
+        const FREE_CASE = {
+            id: 'case_free',
+            name: 'Free Case',
+            price: 0,
+            color: '#00f5d4',
+            pool: ['st_1','st_2','st_3','st_4','st_5']
+        };
+
+        window.CASES = [...baseCases];
+        window.onload = () => window.game.init();
+    </script>
+</body>
+</html>
