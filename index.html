@@ -539,6 +539,16 @@
                     <button class="btn" onclick="game.claimFreeCase()" id="free-case-btn">🎁 CLAIM</button>
                     <p id="free-case-timer" style="color:var(--text-muted);font-size:0.7rem;margin-top:0.3rem;"></p>
                 </div>
+                <!-- ====== NEW PROMO CODE SECTION ====== -->
+                <div class="battlepass-section" style="border-color:var(--mythic);">
+                    <h3 style="color:var(--mythic);">🎟️ Promo Code</h3>
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Enter "CYBERLOOT" to get a free case!</p>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                        <input type="text" id="promo-input" placeholder="Enter code..." style="flex:1; padding:0.5rem 1rem; background:rgba(0,0,0,0.4); border:1px solid #2a2f42; color:#fff; border-radius:8px; outline:none; font-size:0.9rem;" />
+                        <button class="btn" onclick="game.redeemPromoCode()">🎁 REDEEM</button>
+                    </div>
+                    <p id="promo-message" style="font-size:0.8rem;margin-top:0.3rem;"></p>
+                </div>
             </main>
 
             <!-- OPENING -->
@@ -999,6 +1009,12 @@
                 this.loadDatabase();
                 this.loadMarket();
                 this.renderShop();
+
+                // === PROMO CODE INPUT LISTENER ===
+                document.getElementById('promo-input').addEventListener('input', function() {
+                    document.getElementById('promo-message').textContent = '';
+                });
+
                 document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.auth(); });
                 document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.auth(); });
                 setInterval(() => this.updateUI(), 30000);
@@ -1006,6 +1022,26 @@
 
             toggleSound() {
                 SoundManager.toggle();
+            },
+
+            // ===== PROMO CODE FUNCTION =====
+            redeemPromoCode() {
+                const input = document.getElementById('promo-input');
+                const msg = document.getElementById('promo-message');
+                const code = input.value.trim().toUpperCase();
+
+                if (code === 'CYBERLOOT') {
+                    msg.textContent = '✅ Code redeemed! Enjoy your free case!';
+                    msg.style.color = 'var(--accent)';
+                    // Bypass cooldown and directly open the free case
+                    this.activeCase = FREE_CASE;
+                    this.closeInspector();
+                    this.executeRoll(FREE_CASE);
+                    input.value = '';
+                } else {
+                    msg.textContent = '❌ Invalid promo code. Please try again.';
+                    msg.style.color = 'var(--danger)';
+                }
             },
 
             generateAdditionalCases() {
