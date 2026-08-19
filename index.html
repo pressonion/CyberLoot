@@ -144,6 +144,7 @@
             border: 1px solid rgba(255,255,255,0.04);
             transition: transform 0.2s, border-color 0.2s;
             position: relative;
+            cursor: default;
         }
         .index-item:hover { transform: translateY(-3px); }
         .index-item .index-svg { width: 100%; height: 70px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.3rem; }
@@ -165,8 +166,31 @@
             font-size: 2rem;
             opacity: 0.7;
         }
-        .index-item.unlocked { border-color: var(--rarity-color, #fff); }
+        .index-item.unlocked {
+            border-color: var(--rarity-color, #fff);
+            overflow: visible;
+        }
         .index-item.unlocked .index-name { color: var(--text-main); }
+        /* ===== QUANTITY BADGE ===== */
+        .index-item .quantity-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 2px solid var(--bg-main);
+            box-shadow: 0 0 10px var(--accent);
+            z-index: 5;
+        }
+        .index-item.locked .quantity-badge { display: none; }
 
         /* ===== CARDS & GRID ===== */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
@@ -438,6 +462,7 @@
             .index-stats { gap: 0.8rem; }
             .index-stats .stat { padding: 0.4rem 0.8rem; }
             .index-stats .stat .num { font-size: 1rem; }
+            .index-item .quantity-badge { width: 20px; height: 20px; font-size: 0.6rem; }
         }
         @media (max-width: 480px) {
             .reel-item { width: 75px; height: 105px; }
@@ -447,6 +472,7 @@
             .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
             .index-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
             .index-item .index-svg { height: 50px; }
+            .index-item .quantity-badge { width: 18px; height: 18px; font-size: 0.5rem; top: -4px; right: -4px; }
         }
     </style>
 </head>
@@ -515,9 +541,10 @@
             <main class="view" id="index-view">
                 <h2 style="font-size:1.3rem;">📖 Weapon Collection</h2>
                 <div class="index-stats">
-                    <div class="stat"><span class="num" id="index-collected">0</span> <span class="label">Collected</span></div>
+                    <div class="stat"><span class="num" id="index-collected">0</span> <span class="label">Unique</span></div>
                     <div class="stat"><span class="num" id="index-total">0</span> <span class="label">Total Weapons</span></div>
                     <div class="stat"><span class="num" id="index-progress">0%</span> <span class="label">Progress</span></div>
+                    <div class="stat"><span class="num" id="index-total-dup" style="color:var(--mythic);">0</span> <span class="label">Total Dupes</span></div>
                 </div>
                 <div class="index-grid" id="index-grid"></div>
             </main>
@@ -539,10 +566,10 @@
                     <button class="btn" onclick="game.claimFreeCase()" id="free-case-btn">🎁 CLAIM</button>
                     <p id="free-case-timer" style="color:var(--text-muted);font-size:0.7rem;margin-top:0.3rem;"></p>
                 </div>
-                <!-- ====== NEW PROMO CODE SECTION ====== -->
+                <!-- ====== PROMO CODE SECTION (SECRET CODE) ====== -->
                 <div class="battlepass-section" style="border-color:var(--mythic);">
                     <h3 style="color:var(--mythic);">🎟️ Promo Code</h3>
-                    <p style="color:var(--text-muted);font-size:0.85rem;">Enter "CYBERLOOT" to get a free case!</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Enter a valid promo code to get a free case!</p>
                     <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
                         <input type="text" id="promo-input" placeholder="Enter code..." style="flex:1; padding:0.5rem 1rem; background:rgba(0,0,0,0.4); border:1px solid #2a2f42; color:#fff; border-radius:8px; outline:none; font-size:0.9rem;" />
                         <button class="btn" onclick="game.redeemPromoCode()">🎁 REDEEM</button>
@@ -876,7 +903,6 @@
             'sp_6': { id: 'sp_6', name: 'AWP | Spectrum', rarity: 'Legendary', value: 420.00, type: 'awp' },
             'sp_7': { id: 'sp_7', name: 'Talon Knife | Spectrum', rarity: 'Legendary', value: 650.00, type: 'talon' },
             'sp_8': { id: 'sp_8', name: 'Karambit | Spectrum', rarity: 'Mythic', value: 3500.00, type: 'karambit' },
-            // Additional generated weapons for high-end cases (these will be added in generateAdditionalCases)
         };
 
         // ================================================================
@@ -1002,6 +1028,7 @@
             db: {}, currentUser: null, opening: false, autoRolling: false, activeCase: null, wonItemTemp: null,
             luckBonus: 0, openingTimeout: null, pendingSellIndex: null, isFreeCase: false,
             tickInterval: null, market: null,
+            _returnView: null,
 
             init() {
                 SoundManager.init();
@@ -1010,7 +1037,6 @@
                 this.loadMarket();
                 this.renderShop();
 
-                // === PROMO CODE INPUT LISTENER ===
                 document.getElementById('promo-input').addEventListener('input', function() {
                     document.getElementById('promo-message').textContent = '';
                 });
@@ -1024,7 +1050,13 @@
                 SoundManager.toggle();
             },
 
-            // ===== PROMO CODE FUNCTION =====
+            getCurrentView() {
+                const active = document.querySelector('.view.active');
+                if (!active) return 'shop';
+                return active.id.replace('-view', '');
+            },
+
+            // ===== PROMO CODE =====
             redeemPromoCode() {
                 const input = document.getElementById('promo-input');
                 const msg = document.getElementById('promo-message');
@@ -1033,7 +1065,7 @@
                 if (code === 'CYBERLOOT') {
                     msg.textContent = '✅ Code redeemed! Enjoy your free case!';
                     msg.style.color = 'var(--accent)';
-                    // Bypass cooldown and directly open the free case
+                    this._returnView = this.getCurrentView();
                     this.activeCase = FREE_CASE;
                     this.closeInspector();
                     this.executeRoll(FREE_CASE);
@@ -1060,19 +1092,15 @@
             },
 
             loadMarket() {
-                // Force fresh market on every init (ignore stored)
                 this.generateMarketListings();
             },
 
             generateMarketListings() {
                 const keys = Object.keys(DB_GUNS);
                 const listings = [];
-                // We want exactly 5 items. Use rarity weights but ensure we get 5.
                 const weights = [0.50, 0.30, 0.15, 0.04, 0.008, 0.002];
                 const rarityOrder = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
 
-                // Create a pool of all weapon IDs sorted by rarity (we'll just pick randomly from each rarity)
-                // We'll do 5 iterations, each picking a rarity based on weights, then a random item from that rarity.
                 for (let i = 0; i < 5; i++) {
                     let roll = Math.random();
                     let selectedRarity = 'Common';
@@ -1088,7 +1116,6 @@
                     const candidates = keys.filter(id => DB_GUNS[id].rarity === selectedRarity);
                     let id, item;
                     if (candidates.length === 0) {
-                        // fallback to any
                         const fallbackId = keys[Math.floor(Math.random() * keys.length)];
                         id = fallbackId;
                         item = DB_GUNS[fallbackId];
@@ -1096,7 +1123,6 @@
                         id = candidates[Math.floor(Math.random() * candidates.length)];
                         item = DB_GUNS[id];
                     }
-                    // Price is the item's full value (no discount)
                     const price = item.value;
                     listings.push({ itemId: id, price: price, seller: 'CyberBot' });
                 }
@@ -1195,10 +1221,20 @@
             getUserData() {
                 if (!this.currentUser) return null;
                 if (!this.db.users[this.currentUser]) {
-                    this.db.users[this.currentUser] = { password: '', money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: [] };
+                    this.db.users[this.currentUser] = { password: '', money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: {} };
                     this.saveDatabase();
                 }
-                return this.db.users[this.currentUser];
+                const data = this.db.users[this.currentUser];
+                // Migrate old array-based collection to object
+                if (Array.isArray(data.collection)) {
+                    const newColl = {};
+                    data.collection.forEach(id => {
+                        newColl[id] = (newColl[id] || 0) + 1;
+                    });
+                    data.collection = newColl;
+                    this.saveDatabase();
+                }
+                return data;
             },
 
             auth() {
@@ -1216,7 +1252,7 @@
                         return;
                     }
                 } else {
-                    this.db.users[username] = { password: password, money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: [] };
+                    this.db.users[username] = { password: password, money: 10.00, inventory: [], locked: [], freeCaseClaim: 0, collection: {} };
                 }
                 this.saveDatabase();
                 this.currentUser = username;
@@ -1297,21 +1333,26 @@
                 if (document.getElementById('index-view').classList.contains('active')) this.renderIndex();
             },
 
+            // ===== INDEX WITH QUANTITY BADGES =====
             renderIndex() {
                 const data = this.getUserData();
                 const grid = document.getElementById('index-grid');
                 grid.innerHTML = '';
                 const allIds = Object.keys(DB_GUNS);
-                const collected = data.collection || [];
+                const collection = data.collection || {};
 
                 // Stats
                 const total = allIds.length;
-                const collectedCount = collected.length;
+                const collectedCount = Object.keys(collection).length;
+                let totalDupes = 0;
+                for (const id in collection) {
+                    totalDupes += collection[id];
+                }
                 document.getElementById('index-collected').textContent = collectedCount;
                 document.getElementById('index-total').textContent = total;
                 document.getElementById('index-progress').textContent = total > 0 ? Math.round((collectedCount / total) * 100) + '%' : '0%';
+                document.getElementById('index-total-dup').textContent = totalDupes;
 
-                // Sort by rarity order, then name
                 const rarityOrder = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
                 const sortedIds = allIds.sort((a, b) => {
                     const ra = DB_GUNS[a].rarity;
@@ -1324,7 +1365,8 @@
 
                 sortedIds.forEach(id => {
                     const item = DB_GUNS[id];
-                    const isOwned = collected.includes(id);
+                    const quantity = collection[id] || 0;
+                    const isOwned = quantity > 0;
                     const color = BASE_RARITIES[item.rarity]?.color || '#b0c3d9';
                     const div = document.createElement('div');
                     div.className = 'index-item' + (isOwned ? ' unlocked' : ' locked');
@@ -1337,6 +1379,12 @@
                         <div class="index-name">${item.name}</div>
                         <div class="index-rarity" style="color:${isOwned ? color : '#666'}">${item.rarity}</div>
                     `;
+                    if (isOwned && quantity > 0) {
+                        const badge = document.createElement('div');
+                        badge.className = 'quantity-badge';
+                        badge.textContent = quantity;
+                        div.appendChild(badge);
+                    }
                     grid.appendChild(div);
                 });
             },
@@ -1526,8 +1574,27 @@
                 if (data.money < this.activeCase.price) { alert('❌ Not enough funds!'); return; }
                 this.autoRolling = isAuto;
                 this.isFreeCase = false;
+                this._returnView = this.getCurrentView();
                 this.closeInspector();
                 this.executeRoll(this.activeCase);
+            },
+
+            claimFreeCase() {
+                const data = this.getUserData();
+                const now = Date.now();
+                const cooldown = 10 * 60 * 1000;
+                if (now - (data.freeCaseClaim || 0) < cooldown) {
+                    alert('⏳ Free case is on cooldown! Wait 10 minutes.');
+                    return;
+                }
+                data.freeCaseClaim = now;
+                this.saveDatabase();
+                this.updateUI();
+                this.isFreeCase = true;
+                this._returnView = this.getCurrentView();
+                this.activeCase = FREE_CASE;
+                this.closeInspector();
+                this.executeRoll(FREE_CASE);
             },
 
             executeRoll(caseObj) {
@@ -1646,7 +1713,7 @@
                 document.getElementById('win-svg').innerHTML = weaponSVG(w.type, color, false);
                 document.getElementById('win-content').style.borderColor = color;
 
-                // Add to collection
+                // Add to collection with quantity tracking
                 this.addToCollection(w.id);
 
                 if (this.autoRolling) {
@@ -1667,13 +1734,12 @@
                 document.getElementById('win-modal').classList.add('active');
             },
 
+            // ===== COLLECTION WITH QUANTITY =====
             addToCollection(id) {
                 const data = this.getUserData();
-                if (!data.collection) data.collection = [];
-                if (!data.collection.includes(id)) {
-                    data.collection.push(id);
-                    this.saveDatabase();
-                }
+                if (!data.collection) data.collection = {};
+                data.collection[id] = (data.collection[id] || 0) + 1;
+                this.saveDatabase();
             },
 
             closeWinModal(sell) {
@@ -1683,24 +1749,10 @@
                 else data.inventory.push({ ...this.wonItemTemp });
                 this.saveDatabase();
                 this.updateUI();
-                this.switchView('inventory');
-            },
 
-            claimFreeCase() {
-                const data = this.getUserData();
-                const now = Date.now();
-                const cooldown = 10 * 60 * 1000;
-                if (now - (data.freeCaseClaim || 0) < cooldown) {
-                    alert('⏳ Free case is on cooldown! Wait 10 minutes.');
-                    return;
-                }
-                data.freeCaseClaim = now;
-                this.saveDatabase();
-                this.updateUI();
-                this.isFreeCase = true;
-                this.activeCase = FREE_CASE;
-                this.closeInspector();
-                this.executeRoll(FREE_CASE);
+                const targetView = this._returnView || 'shop';
+                this._returnView = null;
+                this.switchView(targetView);
             }
         };
 
