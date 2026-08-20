@@ -84,6 +84,8 @@
         .btn-sm { font-size: 0.65rem; padding: 0.3rem 0.8rem; }
         .btn-confirm { background: #ffaa00; color: #0b0c10; }
         .btn-cancel { background: #555; color: #fff; }
+        .btn-sell-all { background: #ff6b6b; color: #fff; font-size: 0.7rem; padding: 0.4rem 1.2rem; }
+        .btn-sell-all:hover { box-shadow: 0 0 24px #ff6b6b; }
         #login-error { color: var(--danger); margin-top: 1rem; display: none; font-size: 0.9rem; }
 
         /* ===== NAV ===== */
@@ -144,9 +146,9 @@
             border: 1px solid rgba(255,255,255,0.04);
             transition: transform 0.2s, border-color 0.2s;
             position: relative;
-            cursor: default;
+            cursor: pointer;
         }
-        .index-item:hover { transform: translateY(-3px); }
+        .index-item:hover { transform: translateY(-3px); border-color: var(--rarity-color, rgba(255,255,255,0.2)); }
         .index-item .index-svg { width: 100%; height: 70px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.3rem; }
         .index-item .index-svg svg { width: 100%; height: 100%; max-width: 90px; display: block; }
         .index-item .index-name { font-size: 0.65rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -155,6 +157,7 @@
             opacity: 0.4;
             filter: grayscale(1) brightness(0.3);
             border-color: #222;
+            cursor: default;
         }
         .index-item.locked .index-name { color: var(--text-muted); }
         .index-item.locked::after {
@@ -169,9 +172,9 @@
         .index-item.unlocked {
             border-color: var(--rarity-color, #fff);
             overflow: visible;
+            cursor: pointer;
         }
         .index-item.unlocked .index-name { color: var(--text-main); }
-        /* ===== QUANTITY BADGE ===== */
         .index-item .quantity-badge {
             position: absolute;
             top: -6px;
@@ -191,6 +194,98 @@
             z-index: 5;
         }
         .index-item.locked .quantity-badge { display: none; }
+
+        /* ===== INSPECT MODAL ===== */
+        #inspect-modal .modal-content {
+            max-width: 520px;
+            text-align: center;
+            border: 2px solid var(--rarity-color);
+            box-shadow: 0 0 60px var(--rarity-color);
+        }
+        #inspect-modal .inspect-svg-container {
+            width: 280px;
+            height: 220px;
+            margin: 1rem auto 0.5rem;
+            perspective: 800px;
+        }
+        #inspect-modal .inspect-svg-container .inspect-spin {
+            width: 100%;
+            height: 100%;
+            animation: spin3d 8s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+        #inspect-modal .inspect-svg-container .inspect-spin svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            filter: drop-shadow(0 0 40px var(--rarity-color));
+        }
+        @keyframes spin3d {
+            0% { transform: rotateY(0deg) scale(1); }
+            25% { transform: rotateY(90deg) scale(1.05); }
+            50% { transform: rotateY(180deg) scale(1); }
+            75% { transform: rotateY(270deg) scale(1.05); }
+            100% { transform: rotateY(360deg) scale(1); }
+        }
+        #inspect-modal .inspect-rarity {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+            color: var(--rarity-color);
+            margin-top: 0.5rem;
+        }
+        #inspect-modal .inspect-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0.2rem 0 0.1rem;
+            text-shadow: 0 0 30px var(--rarity-color);
+        }
+        #inspect-modal .inspect-value {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        #inspect-modal .inspect-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        #inspect-modal .inspect-stats .stat-item {
+            text-align: center;
+        }
+        #inspect-modal .inspect-stats .stat-item .stat-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+        #inspect-modal .inspect-stats .stat-item .stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        #inspect-modal .inspect-stats .stat-item .stat-value.gold { color: var(--mythic); }
+        #inspect-modal .inspect-stats .stat-item .stat-value.purple { color: var(--rare); }
+        #inspect-modal .inspect-stats .stat-item .stat-value.green { color: var(--accent); }
+        .inspect-progress {
+            width: 100%;
+            height: 6px;
+            background: #1a1a2e;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+        .inspect-progress .inspect-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--rarity-color), var(--accent));
+            transition: width 0.5s;
+            border-radius: 3px;
+        }
 
         /* ===== CARDS & GRID ===== */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
@@ -258,6 +353,21 @@
         #inventory-grid .card .item-actions { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; margin-top: 0.4rem; }
         #inventory-grid .card .item-actions .btn { font-size: 0.6rem; padding: 0.3rem 0.8rem; }
         #inventory-grid .card .lock-badge { font-size: 0.55rem; color: var(--accent); background: rgba(0,245,212,0.15); padding: 0.1rem 0.4rem; border-radius: 4px; display: inline-block; margin-top: 0.1rem; }
+
+        /* ===== INVENTORY BULK ACTIONS ===== */
+        .bulk-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+            align-items: center;
+        }
+        .bulk-actions .label { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+        .bulk-actions .btn { font-size: 0.7rem; padding: 0.4rem 1.2rem; }
 
         /* ===== MARKET SPECIFIC ===== */
         .market-timer {
@@ -372,57 +482,18 @@
         /* Rarity Animations */
         #win-content.epic .win-svg { animation: pulseGlow 1.5s ease-in-out infinite; }
         #win-content.epic { animation: borderGlow 1.5s ease-in-out infinite; }
-
         #win-content.legendary .win-svg { animation: shake 0.6s ease-in-out, pulseGlow 1s ease-in-out infinite; }
         #win-content.legendary { animation: borderGlow 1s ease-in-out infinite; }
-
         #win-content.mythic .win-svg { animation: shake 0.6s ease-in-out, rainbow 2s linear infinite; }
         #win-content.mythic { animation: borderGlowRainbow 2s linear infinite; }
         #win-content.mythic .win-name { background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 300% 100%; animation: shimmer 3s ease-in-out infinite; }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            10% { transform: translateX(-10px) rotate(-5deg); }
-            20% { transform: translateX(10px) rotate(5deg); }
-            30% { transform: translateX(-10px) rotate(-3deg); }
-            40% { transform: translateX(10px) rotate(3deg); }
-            50% { transform: translateX(-5px) rotate(-2deg); }
-            60% { transform: translateX(5px) rotate(2deg); }
-            70% { transform: translateX(-3px) rotate(-1deg); }
-            80% { transform: translateX(3px) rotate(1deg); }
-            90% { transform: translateX(0) rotate(0deg); }
-        }
-        @keyframes pulseGlow {
-            0%, 100% { filter: drop-shadow(0 0 20px var(--rarity-color)); }
-            50% { filter: drop-shadow(0 0 60px var(--rarity-color)); }
-        }
-        @keyframes borderGlow {
-            0%, 100% { border-color: var(--rarity-color); box-shadow: 0 0 30px var(--rarity-color); }
-            50% { border-color: #fff; box-shadow: 0 0 60px var(--rarity-color), 0 0 120px var(--rarity-color); }
-        }
-        @keyframes rainbow {
-            0% { filter: drop-shadow(0 0 30px red); }
-            16% { filter: drop-shadow(0 0 30px orange); }
-            33% { filter: drop-shadow(0 0 30px yellow); }
-            50% { filter: drop-shadow(0 0 30px green); }
-            66% { filter: drop-shadow(0 0 30px blue); }
-            83% { filter: drop-shadow(0 0 30px indigo); }
-            100% { filter: drop-shadow(0 0 30px violet); }
-        }
-        @keyframes borderGlowRainbow {
-            0% { border-color: red; box-shadow: 0 0 30px red; }
-            16% { border-color: orange; box-shadow: 0 0 30px orange; }
-            33% { border-color: yellow; box-shadow: 0 0 30px yellow; }
-            50% { border-color: green; box-shadow: 0 0 30px green; }
-            66% { border-color: blue; box-shadow: 0 0 30px blue; }
-            83% { border-color: indigo; box-shadow: 0 0 30px indigo; }
-            100% { border-color: violet; box-shadow: 0 0 30px violet; }
-        }
-        @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes shake { 0%,100%{transform:translateX(0) rotate(0deg)}10%{transform:translateX(-10px) rotate(-5deg)}20%{transform:translateX(10px) rotate(5deg)}30%{transform:translateX(-10px) rotate(-3deg)}40%{transform:translateX(10px) rotate(3deg)}50%{transform:translateX(-5px) rotate(-2deg)}60%{transform:translateX(5px) rotate(2deg)}70%{transform:translateX(-3px) rotate(-1deg)}80%{transform:translateX(3px) rotate(1deg)}90%{transform:translateX(0) rotate(0deg)} }
+        @keyframes pulseGlow { 0%,100%{filter:drop-shadow(0 0 20px var(--rarity-color))}50%{filter:drop-shadow(0 0 60px var(--rarity-color))} }
+        @keyframes borderGlow { 0%,100%{border-color:var(--rarity-color);box-shadow:0 0 30px var(--rarity-color)}50%{border-color:#fff;box-shadow:0 0 60px var(--rarity-color),0 0 120px var(--rarity-color)} }
+        @keyframes rainbow { 0%{filter:drop-shadow(0 0 30px red)}16%{filter:drop-shadow(0 0 30px orange)}33%{filter:drop-shadow(0 0 30px yellow)}50%{filter:drop-shadow(0 0 30px green)}66%{filter:drop-shadow(0 0 30px blue)}83%{filter:drop-shadow(0 0 30px indigo)}100%{filter:drop-shadow(0 0 30px violet)} }
+        @keyframes borderGlowRainbow { 0%{border-color:red;box-shadow:0 0 30px red}16%{border-color:orange;box-shadow:0 0 30px orange}33%{border-color:yellow;box-shadow:0 0 30px yellow}50%{border-color:green;box-shadow:0 0 30px green}66%{border-color:blue;box-shadow:0 0 30px blue}83%{border-color:indigo;box-shadow:0 0 30px indigo}100%{border-color:violet;box-shadow:0 0 30px violet} }
+        @keyframes shimmer { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
 
         .battlepass-section {
             background: var(--bg-card);
@@ -463,6 +534,11 @@
             .index-stats .stat { padding: 0.4rem 0.8rem; }
             .index-stats .stat .num { font-size: 1rem; }
             .index-item .quantity-badge { width: 20px; height: 20px; font-size: 0.6rem; }
+            .bulk-actions { padding: 0.8rem; }
+            .bulk-actions .btn { font-size: 0.6rem; padding: 0.3rem 0.8rem; }
+            #inspect-modal .inspect-svg-container { width: 200px; height: 160px; }
+            #inspect-modal .inspect-name { font-size: 1.4rem; }
+            #inspect-modal .inspect-stats { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .reel-item { width: 75px; height: 105px; }
@@ -473,6 +549,8 @@
             .index-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
             .index-item .index-svg { height: 50px; }
             .index-item .quantity-badge { width: 18px; height: 18px; font-size: 0.5rem; top: -4px; right: -4px; }
+            #inspect-modal .inspect-svg-container { width: 160px; height: 130px; }
+            #inspect-modal .inspect-name { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -527,6 +605,13 @@
             <!-- INVENTORY -->
             <main class="view" id="inventory-view">
                 <h2 style="font-size:1.3rem;">🎒 Your Inventory <span style="font-size:0.7rem;color:var(--text-muted);">(Total: $<span id="inv-total-value">0.00</span>)</span></h2>
+                <div class="bulk-actions">
+                    <span class="label">⚡ Bulk Sell:</span>
+                    <button class="btn btn-sell-all" onclick="game.sellAllRarity('Common')">🗑️ Sell All Common</button>
+                    <button class="btn btn-sell-all" onclick="game.sellAllRarity('Uncommon')">🗑️ Sell All Uncommon</button>
+                    <button class="btn btn-danger" onclick="game.sellAllRarity('Common','Uncommon')">🔥 Sell All Common & Uncommon</button>
+                    <span style="color:var(--text-muted);font-size:0.7rem;margin-left:auto;" id="bulk-count">0 items</span>
+                </div>
                 <div class="grid" id="inventory-grid" style="margin-top:1rem;"></div>
             </main>
 
@@ -566,7 +651,6 @@
                     <button class="btn" onclick="game.claimFreeCase()" id="free-case-btn">🎁 CLAIM</button>
                     <p id="free-case-timer" style="color:var(--text-muted);font-size:0.7rem;margin-top:0.3rem;"></p>
                 </div>
-                <!-- ====== PROMO CODE SECTION (SECRET CODE) ====== -->
                 <div class="battlepass-section" style="border-color:var(--mythic);">
                     <h3 style="color:var(--mythic);">🎟️ Promo Code</h3>
                     <p style="color:var(--text-muted);font-size:0.85rem;">Enter a valid promo code to get a free case!</p>
@@ -633,6 +717,44 @@
                 <div class="confirm-buttons">
                     <button class="btn btn-confirm" onclick="game.confirmSell()">✅ YES</button>
                     <button class="btn btn-cancel" onclick="game.cancelSell()">❌ NO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== INSPECT MODAL (for Index) ===== -->
+        <div class="modal-overlay" id="inspect-modal">
+            <div class="modal-content" id="inspect-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <h2 style="font-size:1.2rem; font-weight:700;">🔍 Inspect Weapon</h2>
+                    <button class="btn btn-danger" style="padding:0.3rem 0.8rem;font-size:0.7rem;" onclick="game.closeInspect()">✕</button>
+                </div>
+                <div class="inspect-svg-container">
+                    <div class="inspect-spin" id="inspect-spin"></div>
+                </div>
+                <div class="inspect-rarity" id="inspect-rarity">Common</div>
+                <div class="inspect-name" id="inspect-name">Item Name</div>
+                <div class="inspect-value">Value: $<span id="inspect-value">0.00</span></div>
+                <div class="inspect-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Rarity Tier</div>
+                        <div class="stat-value purple" id="inspect-tier">Common</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Times Unboxed</div>
+                        <div class="stat-value gold" id="inspect-count">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Value</div>
+                        <div class="stat-value green" id="inspect-total-value">$0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Collection Progress</div>
+                        <div class="stat-value" id="inspect-progress-text" style="font-size:0.8rem;">0%</div>
+                        <div class="inspect-progress"><div class="inspect-progress-fill" id="inspect-progress-bar" style="width:0%"></div></div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.8rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
+                    <button class="btn" onclick="game.closeInspect()">🔙 Close</button>
                 </div>
             </div>
         </div>
@@ -742,10 +864,10 @@
         };
 
         // ================================================================
-        //  WEAPON SVG – UNIQUE IDS
+        //  WEAPON SVG – UNIQUE IDS (with inspect flag for clean rendering)
         // ================================================================
         let _svgCounter = 0;
-        function weaponSVG(type, color, grayscale = false) {
+        function weaponSVG(type, color, grayscale = false, inspect = false) {
             const id = ++_svgCounter;
             const gradId = 'g' + id;
             const filterId = 'f' + id;
@@ -794,10 +916,10 @@
                 'xm1014': `<g filter="url(#${filterId})"><rect x="22" y="55" width="50" height="15" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="72" y="57" width="16" height="10" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/><path d="M 22 70 L 32 70 L 30 95 L 16 95 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="52" y="65" width="16" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
                 'm249': `<g filter="url(#${filterId})"><rect x="12" y="48" width="70" height="22" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="82" y="52" width="26" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><path d="M 25 70 L 40 70 L 40 100 L 20 100 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="50" y="70" width="20" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
                 'negev': `<g filter="url(#${filterId})"><rect x="10" y="48" width="72" height="22" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="82" y="52" width="28" height="8" fill="url(#neonGlow)" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1"/><path d="M 22 70 L 38 70 L 38 100 L 18 100 Z" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="48" y="70" width="22" height="22" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/></g>`,
-                'karambit': `<g filter="url(#${filterId})"><path d="M 38 75 Q 50 65 62 58 L 68 68 Q 55 75 44 86 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="36" cy="80" r="8" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="4"/><path d="M 62 58 Q 85 40 110 52 Q 85 65 68 68 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="28" y="78" width="14" height="22" rx="3" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="32" y="82" width="6" height="14" rx="2" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
-                'butterfly': `<g filter="url(#${filterId})"><path d="M 45 10 L 55 35 L 65 55 L 55 80 L 38 80 L 28 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 45 10 L 35 35 L 25 55 L 35 80 L 52 80 L 62 55 L 52 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="40" y="82" width="10" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><circle cx="45" cy="82" r="4" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
-                'talon': `<g filter="url(#${filterId})"><path d="M 45 15 L 55 40 L 62 60 L 52 82 L 36 82 L 26 60 L 36 40 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="44" cy="50" r="6" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="34" y="82" width="14" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="38" y="86" width="6" height="10" rx="1" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
-                'm9': `<g filter="url(#${filterId})"><path d="M 44 12 L 54 35 L 62 55 L 54 80 L 38 80 L 30 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 38 35 L 28 22 L 22 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 54 35 L 64 22 L 70 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="40" y="82" width="12" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="44" y="86" width="4" height="10" rx="1" fill="${grayscale ? '#555' : '#555'}" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`
+                'karambit': `<g filter="url(#${filterId})"><path d="M 38 75 Q 50 65 62 58 L 68 68 Q 55 75 44 86 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="36" cy="80" r="8" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="4"/><path d="M 62 58 Q 85 40 110 52 Q 85 65 68 68 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="28" y="78" width="14" height="22" rx="3" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="32" y="82" width="6" height="14" rx="2" fill="#555" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
+                'butterfly': `<g filter="url(#${filterId})"><path d="M 45 10 L 55 35 L 65 55 L 55 80 L 38 80 L 28 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 45 10 L 35 35 L 25 55 L 35 80 L 52 80 L 62 55 L 52 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><rect x="40" y="82" width="10" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><circle cx="45" cy="82" r="4" fill="#555" stroke="${grayscale ? '#666' : color}" stroke-width="1.5"/></g>`,
+                'talon': `<g filter="url(#${filterId})"><path d="M 45 15 L 55 40 L 62 60 L 52 82 L 36 82 L 26 60 L 36 40 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><circle cx="44" cy="50" r="6" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="34" y="82" width="14" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="38" y="86" width="6" height="10" rx="1" fill="#555" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`,
+                'm9': `<g filter="url(#${filterId})"><path d="M 44 12 L 54 35 L 62 55 L 54 80 L 38 80 L 30 55 L 38 35 Z" fill="url(#${gradId})" stroke="${grayscale ? '#666' : '#fff'}" stroke-width="1.5"/><path d="M 38 35 L 28 22 L 22 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><path d="M 54 35 L 64 22 L 70 15" fill="none" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="40" y="82" width="12" height="18" rx="2" fill="${grayscale ? '#333' : '#151720'}" stroke="${grayscale ? '#666' : color}" stroke-width="2"/><rect x="44" y="86" width="4" height="10" rx="1" fill="#555" stroke="${grayscale ? '#666' : color}" stroke-width="1"/></g>`
             };
             const svgContent = shapes[type] || shapes['glock'];
             return `<svg viewBox="0 0 120 105" xmlns="http://www.w3.org/2000/svg">${grad}${svgContent}</svg>`;
@@ -820,7 +942,7 @@
         };
 
         // ================================================================
-        //  WEAPON DATABASE (all weapons)
+        //  WEAPON DATABASE
         // ================================================================
         const DB_GUNS = {
             'st_1': { id: 'st_1', name: 'Glock-18 | Rust', rarity: 'Common', value: 2.50, type: 'glock' },
@@ -831,14 +953,12 @@
             'st_6': { id: 'st_6', name: 'AWP | Wildfire', rarity: 'Epic', value: 75.00, type: 'awp' },
             'st_7': { id: 'st_7', name: 'Karambit | Rust', rarity: 'Legendary', value: 300.00, type: 'karambit' },
             'st_8': { id: 'st_8', name: 'Butterfly Knife | Fade', rarity: 'Mythic', value: 1200.00, type: 'butterfly' },
-            'cy_1': { id: 'cy_1', name: 'P250 | Neon', rarity: 'Common', value: 5.00, type: 'glock' },
-            'cy_2': { id: 'cy_2', name: 'MAC-10 | Cyber', rarity: 'Uncommon', value: 15.00, type: 'mac10' },
-            'cy_3': { id: 'cy_3', name: 'MP9 | Dart', rarity: 'Uncommon', value: 12.00, type: 'mp9' },
-            'cy_4': { id: 'cy_4', name: 'M4A1-S | Phase', rarity: 'Rare', value: 45.00, type: 'm4' },
-            'cy_5': { id: 'cy_5', name: 'SG 553 | Cyberpunk', rarity: 'Epic', value: 85.00, type: 'sg' },
-            'cy_6': { id: 'cy_6', name: 'Desert Eagle | Blaze', rarity: 'Legendary', value: 350.00, type: 'deagle' },
-            'cy_7': { id: 'cy_7', name: 'Talon Knife | Night', rarity: 'Legendary', value: 400.00, type: 'talon' },
-            'cy_8': { id: 'cy_8', name: 'M9 Bayonet | Tiger Tooth', rarity: 'Mythic', value: 1800.00, type: 'm9' },
+            'fr_1': { id: 'fr_1', name: 'P250 | Sand Dune', rarity: 'Common', value: 0.50, type: 'glock' },
+            'fr_2': { id: 'fr_2', name: 'MP9 | Green Plaid', rarity: 'Common', value: 0.75, type: 'mp9' },
+            'fr_3': { id: 'fr_3', name: 'Dual Elites | Contractor', rarity: 'Uncommon', value: 2.00, type: 'dual' },
+            'fr_4': { id: 'fr_4', name: 'MAG-7 | Silver', rarity: 'Uncommon', value: 2.50, type: 'shotgun' },
+            'fr_5': { id: 'fr_5', name: 'Galil | Tuxedo', rarity: 'Rare', value: 5.00, type: 'galil' },
+            'fr_6': { id: 'fr_6', name: 'SSG 08 | Slashed', rarity: 'Epic', value: 12.00, type: 'scout' },
             'ar_1': { id: 'ar_1', name: 'Galil | Shattered', rarity: 'Common', value: 3.50, type: 'galil' },
             'ar_2': { id: 'ar_2', name: 'FAMAS | Pulse', rarity: 'Common', value: 4.00, type: 'famas' },
             'ar_3': { id: 'ar_3', name: 'AUG | Neon Rider', rarity: 'Uncommon', value: 12.00, type: 'aug' },
@@ -1006,10 +1126,11 @@
         }
 
         // ================================================================
-        //  BASE CASES
+        //  BASE CASES (WELCOME CASE INCLUDED)
         // ================================================================
         const baseCases = [
             { id: 'case_starter', name: 'Starter Case', price: 5, color: '#8847ff', pool: ['st_1','st_2','st_3','st_4','st_5','st_6','st_7','st_8'] },
+            { id: 'case_welcome', name: 'Welcome Case', price: 0, color: '#00ffcc', pool: ['fr_1','fr_2','fr_3','fr_4','fr_5','fr_6'] },
             { id: 'case_arsenal', name: 'Arsenal Case', price: 10, color: '#ff6b6b', pool: ['ar_1','ar_2','ar_3','ar_4','ar_5','ar_6','ar_7','ar_8'] },
             { id: 'case_smg', name: 'SMG Collection', price: 12, color: '#feca57', pool: ['sm_1','sm_2','sm_3','sm_4','sm_5','sm_6','sm_7','sm_8'] },
             { id: 'case_cyber', name: 'Cyber Case', price: 15, color: '#00f5d4', pool: ['cy_1','cy_2','cy_3','cy_4','cy_5','cy_6','cy_7','cy_8'] },
@@ -1061,7 +1182,6 @@
                 const input = document.getElementById('promo-input');
                 const msg = document.getElementById('promo-message');
                 const code = input.value.trim().toUpperCase();
-
                 if (code === 'CYBERLOOT') {
                     msg.textContent = '✅ Code redeemed! Enjoy your free case!';
                     msg.style.color = 'var(--accent)';
@@ -1112,7 +1232,6 @@
                             break;
                         }
                     }
-
                     const candidates = keys.filter(id => DB_GUNS[id].rarity === selectedRarity);
                     let id, item;
                     if (candidates.length === 0) {
@@ -1126,7 +1245,6 @@
                     const price = item.value;
                     listings.push({ itemId: id, price: price, seller: 'CyberBot' });
                 }
-
                 this.market = { listings: listings, lastRefresh: Date.now() };
                 localStorage.setItem('cyberLootMarket', JSON.stringify(this.market));
                 if (document.getElementById('market-view').classList.contains('active')) {
@@ -1142,7 +1260,6 @@
                     this.updateMarketTimer();
                     return;
                 }
-
                 this.updateMarketTimer();
                 this.market.listings.forEach((listing, index) => {
                     const item = DB_GUNS[listing.itemId];
@@ -1153,7 +1270,6 @@
                     card.style.setProperty('--rarity-color', color);
                     const svg = weaponSVG(item.type, color, false);
                     const price = listing.price.toFixed(2);
-
                     card.innerHTML = `
                         <div class="item-rarity" style="--rarity-color:${color}">${item.rarity}</div>
                         <div class="item-name">${item.name}</div>
@@ -1192,13 +1308,11 @@
                 if (!listing) return;
                 const item = DB_GUNS[listing.itemId];
                 if (!item) return;
-
                 const data = this.getUserData();
                 if (data.money < listing.price) {
                     alert('❌ Not enough money!');
                     return;
                 }
-
                 data.money -= listing.price;
                 data.inventory.push({ ...item });
                 this.market.listings.splice(index, 1);
@@ -1225,7 +1339,6 @@
                     this.saveDatabase();
                 }
                 const data = this.db.users[this.currentUser];
-                // Migrate old array-based collection to object
                 if (Array.isArray(data.collection)) {
                     const newColl = {};
                     data.collection.forEach(id => {
@@ -1331,9 +1444,95 @@
                 if (document.getElementById('inventory-view').classList.contains('active')) this.renderInventory();
                 if (document.getElementById('market-view').classList.contains('active')) this.renderMarket();
                 if (document.getElementById('index-view').classList.contains('active')) this.renderIndex();
+
+                if (document.getElementById('inventory-view').classList.contains('active')) {
+                    this.updateBulkCount();
+                }
             },
 
-            // ===== INDEX WITH QUANTITY BADGES =====
+            // ===== BULK SELL FUNCTIONS =====
+            updateBulkCount() {
+                const data = this.getUserData();
+                if (!data) return;
+                let commonCount = 0;
+                let uncommonCount = 0;
+                data.inventory.forEach(item => {
+                    if (item.rarity === 'Common') commonCount++;
+                    if (item.rarity === 'Uncommon') uncommonCount++;
+                });
+                document.getElementById('bulk-count').textContent = `${commonCount} Common, ${uncommonCount} Uncommon`;
+            },
+
+            sellAllRarity(...rarities) {
+                const data = this.getUserData();
+                if (!data || data.inventory.length === 0) {
+                    alert('Your inventory is empty!');
+                    return;
+                }
+
+                let itemsToSell = [];
+                let totalValue = 0;
+                const newInventory = [];
+
+                data.inventory.forEach(item => {
+                    if (rarities.includes(item.rarity)) {
+                        itemsToSell.push(item);
+                        totalValue += item.value;
+                    } else {
+                        newInventory.push(item);
+                    }
+                });
+
+                if (itemsToSell.length === 0) {
+                    alert(`No ${rarities.join(' or ')} items found in your inventory!`);
+                    return;
+                }
+
+                let lockedCount = 0;
+                itemsToSell.forEach(item => {
+                    const idx = data.inventory.indexOf(item);
+                    if (data.locked && data.locked.includes(idx)) {
+                        lockedCount++;
+                    }
+                });
+
+                if (lockedCount > 0) {
+                    if (!confirm(`⚠️ ${lockedCount} of the items you're about to sell are LOCKED. Locked items will be skipped. Continue?`)) {
+                        return;
+                    }
+                    let soldCount = 0;
+                    let soldValue = 0;
+                    const remaining = [];
+                    data.inventory.forEach((item, idx) => {
+                        if (rarities.includes(item.rarity) && (!data.locked || !data.locked.includes(idx))) {
+                            soldCount++;
+                            soldValue += item.value;
+                        } else {
+                            remaining.push(item);
+                        }
+                    });
+                    data.inventory = remaining;
+                    data.locked = data.locked.filter(lockIdx => lockIdx < data.inventory.length);
+                    data.money += soldValue;
+                    this.saveDatabase();
+                    this.updateUI();
+                    this.renderInventory();
+                    alert(`✅ Sold ${soldCount} items for $${soldValue.toFixed(2)}! (Locked items were skipped.)`);
+                    return;
+                }
+
+                const confirmMsg = `Are you sure you want to sell ${itemsToSell.length} ${rarities.join(' & ')} item(s) for $${totalValue.toFixed(2)}?`;
+                if (!confirm(confirmMsg)) return;
+
+                data.inventory = newInventory;
+                data.money += totalValue;
+                this.saveDatabase();
+                this.updateUI();
+                this.renderInventory();
+                alert(`✅ Sold ${itemsToSell.length} items for $${totalValue.toFixed(2)}!`);
+            },
+
+            // ===== INDEX WITH INSPECT =====
             renderIndex() {
                 const data = this.getUserData();
                 const grid = document.getElementById('index-grid');
@@ -1341,7 +1540,6 @@
                 const allIds = Object.keys(DB_GUNS);
                 const collection = data.collection || {};
 
-                // Stats
                 const total = allIds.length;
                 const collectedCount = Object.keys(collection).length;
                 let totalDupes = 0;
@@ -1385,8 +1583,58 @@
                         badge.textContent = quantity;
                         div.appendChild(badge);
                     }
+                    // Only make unlocked items clickable for inspect
+                    if (isOwned) {
+                        div.addEventListener('click', () => this.openInspect(id));
+                    }
                     grid.appendChild(div);
                 });
+            },
+
+            // ===== OPEN INSPECT =====
+            openInspect(id) {
+                const item = DB_GUNS[id];
+                const data = this.getUserData();
+                const collection = data.collection || {};
+                const quantity = collection[id] || 0;
+                const color = BASE_RARITIES[item.rarity].color;
+
+                // Calculate total value of this item across all copies
+                const totalValue = item.value * quantity;
+
+                // Get collection progress for this rarity tier
+                const allIds = Object.keys(DB_GUNS);
+                const sameRarity = allIds.filter(i => DB_GUNS[i].rarity === item.rarity);
+                const collectedSameRarity = sameRarity.filter(i => collection[i] && collection[i] > 0);
+                const progress = sameRarity.length > 0 ? Math.round((collectedSameRarity.length / sameRarity.length) * 100) : 0;
+
+                // Set modal content
+                document.getElementById('inspect-content').style.setProperty('--rarity-color', color);
+                document.getElementById('inspect-rarity').textContent = item.rarity;
+                document.getElementById('inspect-rarity').style.color = color;
+                document.getElementById('inspect-name').textContent = item.name;
+                document.getElementById('inspect-name').style.textShadow = `0 0 30px ${color}`;
+                document.getElementById('inspect-value').textContent = item.value.toFixed(2);
+                document.getElementById('inspect-tier').textContent = item.rarity;
+                document.getElementById('inspect-tier').style.color = color;
+                document.getElementById('inspect-count').textContent = quantity;
+                document.getElementById('inspect-total-value').textContent = `$${totalValue.toFixed(2)}`;
+                document.getElementById('inspect-progress-text').textContent = `${progress}%`;
+                document.getElementById('inspect-progress-bar').style.width = `${progress}%`;
+                document.getElementById('inspect-progress-bar').style.setProperty('--rarity-color', color);
+
+                // Set spinning SVG
+                const spinContainer = document.getElementById('inspect-spin');
+                const svg = weaponSVG(item.type, color, false);
+                spinContainer.innerHTML = svg;
+
+                // Show modal
+                document.getElementById('inspect-modal').classList.add('active');
+                SoundManager.click();
+            },
+
+            closeInspect() {
+                document.getElementById('inspect-modal').classList.remove('active');
             },
 
             switchView(viewName) {
@@ -1396,7 +1644,7 @@
                 document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
                 const btn = document.getElementById(`nav-${viewName}`);
                 if (btn) btn.classList.add('active');
-                if (viewName === 'inventory') this.renderInventory();
+                if (viewName === 'inventory') { this.renderInventory(); this.updateBulkCount(); }
                 if (viewName === 'shop') this.renderShop();
                 if (viewName === 'market') this.renderMarket();
                 if (viewName === 'battlepass') this.updateUI();
@@ -1410,10 +1658,11 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.style.setProperty('--rarity-color', c.color);
+                    const priceDisplay = c.price === 0 ? 'FREE' : `$${c.price.toFixed(2)}`;
                     card.innerHTML = `
                         <div class="item-name">${c.name}</div>
                         <div class="case-image">${caseImageHTML(c.color, c.name)}</div>
-                        <div class="item-price">$${c.price.toFixed(2)}</div>
+                        <div class="item-price">${priceDisplay}</div>
                         <button class="btn" onclick="game.inspectCase('${c.id}')">🔍 INSPECT</button>
                     `;
                     grid.appendChild(card);
@@ -1426,6 +1675,7 @@
                 grid.innerHTML = '';
                 if (!data || data.inventory.length === 0) {
                     grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:1rem 0;">🎒 Empty</p>';
+                    this.updateBulkCount();
                     return;
                 }
                 data.inventory.forEach((item, idx) => {
@@ -1453,6 +1703,7 @@
                 let total = 0;
                 data.inventory.forEach(item => { total += item.value; });
                 document.getElementById('inv-total-value').textContent = total.toFixed(2);
+                this.updateBulkCount();
             },
 
             toggleLock(idx) {
@@ -1510,7 +1761,7 @@
                 this.activeCase = window.CASES.find(c => c.id === caseId);
                 if (!this.activeCase) return;
                 document.getElementById('inspector-title').textContent = this.activeCase.name;
-                document.getElementById('btn-inspect-open').textContent = `🔓 OPEN ($${this.activeCase.price.toFixed(2)})`;
+                document.getElementById('btn-inspect-open').textContent = this.activeCase.price === 0 ? '🔓 OPEN (FREE)' : `🔓 OPEN ($${this.activeCase.price.toFixed(2)})`;
                 const grid = document.getElementById('inspector-items');
                 grid.innerHTML = '';
                 const items = [];
@@ -1571,7 +1822,10 @@
 
             startRoll(isAuto) {
                 const data = this.getUserData();
-                if (data.money < this.activeCase.price) { alert('❌ Not enough funds!'); return; }
+                if (this.activeCase.price > 0 && data.money < this.activeCase.price) {
+                    alert('❌ Not enough funds!');
+                    return;
+                }
                 this.autoRolling = isAuto;
                 this.isFreeCase = false;
                 this._returnView = this.getCurrentView();
@@ -1713,7 +1967,6 @@
                 document.getElementById('win-svg').innerHTML = weaponSVG(w.type, color, false);
                 document.getElementById('win-content').style.borderColor = color;
 
-                // Add to collection with quantity tracking
                 this.addToCollection(w.id);
 
                 if (this.autoRolling) {
@@ -1734,7 +1987,6 @@
                 document.getElementById('win-modal').classList.add('active');
             },
 
-            // ===== COLLECTION WITH QUANTITY =====
             addToCollection(id) {
                 const data = this.getUserData();
                 if (!data.collection) data.collection = {};
@@ -1766,6 +2018,13 @@
 
         window.CASES = [...baseCases];
         window.onload = () => window.game.init();
+
+        // Close inspect modal when clicking outside
+        document.getElementById('inspect-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                window.game.closeInspect();
+            }
+        });
     </script>
 </body>
 </html>
