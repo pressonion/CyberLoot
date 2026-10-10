@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberLoot - CS2 Case Opener</title>
     <style>
         /* ===== RESET & ROOT ===== */
@@ -1308,11 +1306,11 @@
                 <div class="sub">⚡ CS2 Case Simulator ⚡</div>
                 <div class="input-group">
                     <label>Username</label>
-                    <input type="text" id="username" placeholder="Enter username" autocomplete="off" />
+                    <input type="text" id="username" placeholder="Enter username" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" id="password" placeholder="Enter password" />
+                    <input type="password" id="password" placeholder="Enter password">
                 </div>
                 <button class="btn" style="width:100%;" onclick="game.auth()">LOGIN / REGISTER</button>
                 <p id="login-error"></p>
@@ -1320,9 +1318,7 @@
                 <!-- Saved accounts -->
                 <div class="saved-accounts-section">
                     <span class="label">📁 Saved Accounts</span>
-                    <div class="account-list" id="account-list">
-                        <span class="no-accounts">No saved accounts yet</span>
-                    </div>
+                    <div class="account-list" id="account-list"><span class="no-accounts">No saved accounts yet</span></div>
                 </div>
             </div>
         </div>
@@ -1351,7 +1347,107 @@
             <!-- SHOP -->
             <main class="view active" id="shop-view">
                 <h2 style="margin-bottom:1rem;font-size:1.3rem;">📦 Case Shop</h2>
-                <div class="grid" id="shop-grid"></div>
+                <div class="grid" id="shop-grid"><div class="card" style="--rarity-color: #00ffcc;">
+                        <div class="item-name">Welcome Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #00ffcc77; --box-color2: #00ffcc22; border-color: #00ffcc;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #00ffcc;">📦</div>Welcome</div></div>
+                        <div class="item-price">FREE</div>
+                        <button class="btn" onclick="game.inspectCase('case_welcome')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #8847ff;">
+                        <div class="item-name">Starter Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #8847ff77; --box-color2: #8847ff22; border-color: #8847ff;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #8847ff;">📦</div>Starter</div></div>
+                        <div class="item-price">$5.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_starter')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ff6b6b;">
+                        <div class="item-name">Arsenal Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ff6b6b77; --box-color2: #ff6b6b22; border-color: #ff6b6b;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ff6b6b;">📦</div>Arsenal</div></div>
+                        <div class="item-price">$10.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_arsenal')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #feca57;">
+                        <div class="item-name">SMG Collection</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #feca5777; --box-color2: #feca5722; border-color: #feca57;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #feca57;">📦</div>SMG Collection</div></div>
+                        <div class="item-price">$12.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_smg')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #2d3436;">
+                        <div class="item-name">Night Ops Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #2d343677; --box-color2: #2d343622; border-color: #2d3436;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #2d3436;">📦</div>Night Ops</div></div>
+                        <div class="item-price">$18.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_night')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #a29bfe;">
+                        <div class="item-name">Legacy Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #a29bfe77; --box-color2: #a29bfe22; border-color: #a29bfe;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #a29bfe;">📦</div>Legacy</div></div>
+                        <div class="item-price">$20.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_legacy')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #fd79a8;">
+                        <div class="item-name">Elite Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #fd79a877; --box-color2: #fd79a822; border-color: #fd79a8;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #fd79a8;">📦</div>Elite</div></div>
+                        <div class="item-price">$25.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_elite')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #e17055;">
+                        <div class="item-name">Phoenix Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #e1705577; --box-color2: #e1705522; border-color: #e17055;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #e17055;">📦</div>Phoenix</div></div>
+                        <div class="item-price">$30.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_phoenix')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #00ff44;">
+                        <div class="item-name">Gamma Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #00ff4477; --box-color2: #00ff4422; border-color: #00ff44;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #00ff44;">📦</div>Gamma</div></div>
+                        <div class="item-price">$40.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_gamma')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ff00ff;">
+                        <div class="item-name">Spectrum Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ff00ff77; --box-color2: #ff00ff22; border-color: #ff00ff;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ff00ff;">📦</div>Spectrum</div></div>
+                        <div class="item-price">$50.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_spectrum')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ff4500;">
+                        <div class="item-name">Ruby Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ff450077; --box-color2: #ff450022; border-color: #ff4500;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ff4500;">📦</div>Ruby</div></div>
+                        <div class="item-price">$75.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_ruby')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ff8c00;">
+                        <div class="item-name">Sapphire Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ff8c0077; --box-color2: #ff8c0022; border-color: #ff8c00;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ff8c00;">📦</div>Sapphire</div></div>
+                        <div class="item-price">$100.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_sapphire')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ffd700;">
+                        <div class="item-name">Emerald Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ffd70077; --box-color2: #ffd70022; border-color: #ffd700;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ffd700;">📦</div>Emerald</div></div>
+                        <div class="item-price">$150.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_emerald')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #7fff00;">
+                        <div class="item-name">Diamond Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #7fff0077; --box-color2: #7fff0022; border-color: #7fff00;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #7fff00;">📦</div>Diamond</div></div>
+                        <div class="item-price">$200.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_diamond')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #00fa9a;">
+                        <div class="item-name">Onyx Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #00fa9a77; --box-color2: #00fa9a22; border-color: #00fa9a;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #00fa9a;">📦</div>Onyx</div></div>
+                        <div class="item-price">$300.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_onyx')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #00bfff;">
+                        <div class="item-name">Pearl Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #00bfff77; --box-color2: #00bfff22; border-color: #00bfff;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #00bfff;">📦</div>Pearl</div></div>
+                        <div class="item-price">$400.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_pearl')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #1e90ff;">
+                        <div class="item-name">Gold Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #1e90ff77; --box-color2: #1e90ff22; border-color: #1e90ff;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #1e90ff;">📦</div>Gold</div></div>
+                        <div class="item-price">$500.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_gold')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #9370db;">
+                        <div class="item-name">Platinum Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #9370db77; --box-color2: #9370db22; border-color: #9370db;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #9370db;">📦</div>Platinum</div></div>
+                        <div class="item-price">$750.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_platinum')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #ff1493;">
+                        <div class="item-name">Obsidian Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #ff149377; --box-color2: #ff149322; border-color: #ff1493;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #ff1493;">📦</div>Obsidian</div></div>
+                        <div class="item-price">$1000.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_obsidian')">🔍 INSPECT</button>
+                    </div><div class="card" style="--rarity-color: #c71585;">
+                        <div class="item-name">Titanium Case</div>
+                        <div class="case-image"><div class="case-box" style="--box-color1: #c7158577; --box-color2: #c7158522; border-color: #c71585;"><div class="shine"></div><div class="lock-icon" style="color:#fff;font-size:1.5rem;text-shadow:0 0 10px #c71585;">📦</div>Titanium</div></div>
+                        <div class="item-price">$1500.00</div>
+                        <button class="btn" onclick="game.inspectCase('case_titanium')">🔍 INSPECT</button>
+                    </div></div>
             </main>
 
             <!-- INVENTORY -->
@@ -1361,7 +1457,7 @@
                     <span class="label">⚡ Bulk Sell:</span>
                     <button class="btn btn-sell-all" onclick="game.sellAllRarity('Common')">🗑️ Sell All Common</button>
                     <button class="btn btn-sell-all" onclick="game.sellAllRarity('Uncommon')">🗑️ Sell All Uncommon</button>
-                    <button class="btn btn-danger" onclick="game.sellAllRarity('Common','Uncommon')">🔥 Sell All Common & Uncommon</button>
+                    <button class="btn btn-danger" onclick="game.sellAllRarity('Common','Uncommon')">🔥 Sell All Common &amp; Uncommon</button>
                     <span style="color:var(--text-muted);font-size:0.7rem;margin-left:auto;" id="bulk-count">0 items</span>
                 </div>
                 <div class="grid" id="inventory-grid" style="margin-top:1rem;"></div>
@@ -1407,7 +1503,7 @@
                     <h3 style="color:var(--mythic);">🎟️ Promo Code</h3>
                     <p style="color:var(--text-muted);font-size:0.85rem;">Enter a valid promo code to get a free case!</p>
                     <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
-                        <input type="text" id="promo-input" placeholder="Enter code..." style="flex:1; padding:0.5rem 1rem; background:rgba(0,0,0,0.4); border:1px solid #2a2f42; color:#fff; border-radius:8px; outline:none; font-size:0.9rem;" />
+                        <input type="text" id="promo-input" placeholder="Enter code..." style="flex:1; padding:0.5rem 1rem; background:rgba(0,0,0,0.4); border:1px solid #2a2f42; color:#fff; border-radius:8px; outline:none; font-size:0.9rem;">
                         <button class="btn" onclick="game.redeemPromoCode()">🎁 REDEEM</button>
                     </div>
                     <p id="promo-message" style="font-size:0.8rem;margin-top:0.3rem;"></p>
@@ -2080,7 +2176,7 @@
                     listings.push({ itemId: id, price: price, seller: 'CyberBot' });
                 }
                 this.market = { listings: listings, lastRefresh: Date.now() };
-                localStorage.setItem('cyberLootMarket', JSON.stringify(this.market));
+                localStorage.setItem('cl_7e91b4d2f6a84c0db3_market_cache_v1', JSON.stringify(this.market));
                 if (document.getElementById('market-view').classList.contains('active')) {
                     this.renderMarket();
                 }
@@ -2150,7 +2246,7 @@
                 data.money -= listing.price;
                 data.inventory.push({ ...item });
                 this.market.listings.splice(index, 1);
-                localStorage.setItem('cyberLootMarket', JSON.stringify(this.market));
+                localStorage.setItem('cl_7e91b4d2f6a84c0db3_market_cache_v1', JSON.stringify(this.market));
                 this.saveDatabase();
                 this.updateUI();
                 this.renderMarket();
@@ -2160,11 +2256,11 @@
             },
 
             loadDatabase() {
-                try { const raw = localStorage.getItem('cyberLootDB');
+                try { const raw = localStorage.getItem('cl_7e91b4d2f6a84c0db3_user_save_database_v1');
                     this.db = raw ? JSON.parse(raw) : { users: {} }; } catch (_) { this.db = { users: {} }; }
             },
 
-            saveDatabase() { localStorage.setItem('cyberLootDB', JSON.stringify(this.db)); },
+            saveDatabase() { localStorage.setItem('cl_7e91b4d2f6a84c0db3_user_save_database_v1', JSON.stringify(this.db)); },
 
             getUserData() {
                 if (!this.currentUser) return null;
@@ -2981,5 +3077,6 @@
             }
         });
     </script>
-</body>
-</html>
+
+
+</body></html>
